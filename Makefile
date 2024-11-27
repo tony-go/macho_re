@@ -8,7 +8,7 @@ all:
 
 .PHONY: test
 test: all
-	@./$(BUILD_DIR)/quickmacho /bin/ls
+	@./$(BUILD_DIR)/macho_helper_cli /bin/ls
 
 # Clean build directory
 .PHONY: clean
