@@ -188,6 +188,10 @@ int main(int argc, char *argv[])
   {
     parse_fat(buffer, size);
   }
+  else
+  {
+    parse_mach_o(buffer);
+  }
 
   free(buffer);
   return 0;
