@@ -5,7 +5,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-void print_usage(const char *program_name) {
+#define VERSION_STR_SIZE 16
+
+void print_usage(const char *program_name)
+{
   printf("Usage: %s <path-to-binary>\n", program_name);
   printf("Displays linked libraries in a Mach-O binary file\n");
 }
@@ -13,36 +16,52 @@ void print_usage(const char *program_name) {
 // The version is a 32-bit integer in the format 0xMMmmPPPP, where MM is the
 // major version, mm is the minor version, and PPPP is the patch version.
 // We need to extract these values and print them in the format MM.mm.PPPP.
-void print_dylib_version(uint32_t version) {
+void parse_dylib_version(uint32_t version, char *output_version_str, size_t output_version_str_size)
+{
   uint32_t major = (version >> 24) & 0xFF;
   uint32_t minor = (version >> 16) & 0xFF;
   uint32_t patch = version & 0xFF;
-  printf("Version: %u.%u.%u\n", major, minor, patch);
+  char *version_str = malloc(10);
+  // return a string in the format MM.mm.PPPP
+  snprintf(output_version_str, output_version_str_size, "%u.%u.%u", major,
+           minor, patch);
 }
 
-void parse_load_commands(uint8_t *buffer, uint32_t ncmds) {
+void parse_load_commands(uint8_t *buffer, uint32_t ncmds)
+{
   struct mach_header *header = (struct mach_header *)buffer;
   uint32_t magic_header = header->magic;
 
   uint8_t *cmd;
-  if (magic_header == MH_MAGIC_64) {
+  if (magic_header == MH_MAGIC_64)
+  {
     cmd = buffer + sizeof(struct mach_header_64);
-  } else {
+  }
+  else
+  {
     cmd = buffer + sizeof(struct mach_header);
   }
 
-  for (uint32_t index = 0; index < ncmds; index++) {
+  for (uint32_t index = 0; index < ncmds; index++)
+  {
     struct load_command *lc = (struct load_command *)cmd;
 
-    switch (lc->cmd) {
+    switch (lc->cmd)
+    {
     case LC_LOAD_DYLIB:
     case LC_LOAD_WEAK_DYLIB:
-    case LC_ID_DYLIB: {
+    case LC_ID_DYLIB:
+    case LC_REEXPORT_DYLIB:
+    case LC_LOAD_UPWARD_DYLIB:
+    case LC_LAZY_LOAD_DYLIB:
+    {
       struct dylib_command *dylib_cmd = (struct dylib_command *)cmd;
       const char *name = (char *)cmd + dylib_cmd->dylib.name.offset;
       uint32_t version = dylib_cmd->dylib.current_version;
-      printf("Load dylib: %s\n", name);
-      print_dylib_version(version);
+      printf("Load dylib: %s - ", name);
+      char version_str[VERSION_STR_SIZE];
+      parse_dylib_version(version, version_str, VERSION_STR_SIZE);
+      printf("version: %s\n", version_str);
       break;
     }
     defaut:
@@ -53,12 +72,14 @@ void parse_load_commands(uint8_t *buffer, uint32_t ncmds) {
   }
 }
 
-void parse_mach_o(uint8_t *buffer) {
+void parse_mach_o(uint8_t *buffer)
+{
   struct mach_header *header = (struct mach_header *)buffer;
   uint32_t cpu_type = header->cputype;
 
   printf("========================================\n");
-  switch (cpu_type) {
+  switch (cpu_type)
+  {
   case CPU_TYPE_X86:
     printf("CPU Type: x86\n");
     break;
@@ -81,12 +102,14 @@ void parse_mach_o(uint8_t *buffer) {
   parse_load_commands(buffer, ncmds);
 }
 
-void parse_fat(uint8_t *buffer, size_t size) {
+void parse_fat(uint8_t *buffer, size_t size)
+{
   struct fat_header *header = (struct fat_header *)buffer;
   uint32_t nfat_arch = ntohl(header->nfat_arch);
   printf("Number of architectures: %u\n", nfat_arch);
 
-  for (uint32_t i = 0; i < nfat_arch; i++) {
+  for (uint32_t i = 0; i < nfat_arch; i++)
+  {
     struct fat_arch *arch =
         (struct fat_arch *)(buffer + sizeof(struct fat_header) +
                             i * sizeof(struct fat_arch));
@@ -95,8 +118,10 @@ void parse_fat(uint8_t *buffer, size_t size) {
   }
 }
 
-int main(int argc, char *argv[]) {
-  if (argc != 2) {
+int main(int argc, char *argv[])
+{
+  if (argc != 2)
+  {
     print_usage(argv[0]);
     return 1;
   }
@@ -105,7 +130,8 @@ int main(int argc, char *argv[]) {
 
   // Read the binary file
   FILE *file = fopen(filename, "rb");
-  if (!file) {
+  if (!file)
+  {
     printf("Error: Cannot open file '%s'\n", filename);
     return 1;
   }
@@ -117,13 +143,15 @@ int main(int argc, char *argv[]) {
 
   // Read file into buffer
   uint8_t *buffer = malloc(size);
-  if (!buffer) {
+  if (!buffer)
+  {
     printf("Error: Memory allocation failed\n");
     fclose(file);
     return 1;
   }
 
-  if (fread(buffer, 1, size, file) != size) {
+  if (fread(buffer, 1, size, file) != size)
+  {
     printf("Error: Failed to read file\n");
     free(buffer);
     fclose(file);
@@ -134,7 +162,8 @@ int main(int argc, char *argv[]) {
   // Check magic
   uint32_t magic = *(uint32_t *)buffer;
 
-  if (FAT_MAGIC == magic || FAT_CIGAM == magic) {
+  if (FAT_MAGIC == magic || FAT_CIGAM == magic)
+  {
     parse_fat(buffer, size);
   }
 
