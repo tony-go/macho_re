@@ -77,11 +77,16 @@ void parse_load_commands(uint8_t *buffer, uint32_t ncmds)
       printf("- ");
 
       char version_str[VERSION_STR_SIZE];
-      parse_dylib_version(dylib_cmd, version_str, VERSION_STR_SIZE);
-      printf("version: %s\n", version_str);
+      bool is_version_truncated = parse_dylib_version(dylib_cmd, version_str, VERSION_STR_SIZE);
+      printf("version: %s", version_str);
+      if (is_version_truncated)
+      {
+        printf("(truncated) ");
+      }
+      printf("\n");
       break;
     }
-    defaut:
+    default:
       break;
     }
 
