@@ -36,19 +36,13 @@ Number of architectures: 2
 ========================================
 CPU Type: x86_64
 Number of load commands: 18
-Load dylib: /usr/lib/libutil.dylib
-Version: 0.1.0
-Load dylib: /usr/lib/libncurses.5.4.dylib
-Version: 0.5.0
-Load dylib: /usr/lib/libSystem.B.dylib
-Version: 5.71.0
+Load dylib: /usr/lib/libutil.dylib - version: 0.1.0
+Load dylib: /usr/lib/libncurses.5.4.dylib - version: 0.5.0
+Load dylib: /usr/lib/libSystem.B.dylib - version: 5.65.2
 ========================================
 CPU Type: ARM64
-Number of load commands: 20
-Load dylib: /usr/lib/libutil.dylib
-Version: 0.1.0
-Load dylib: /usr/lib/libncurses.5.4.dylib
-Version: 0.5.0
-Load dylib: /usr/lib/libSystem.B.dylib
-Version: 5.71.0
+Number of load commands: 19
+Load dylib: /usr/lib/libutil.dylib - version: 0.1.0
+Load dylib: /usr/lib/libncurses.5.4.dylib - version: 0.5.0
+Load dylib: /usr/lib/libSystem.B.dylib - version: 5.65.2
 ```
