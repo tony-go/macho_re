@@ -13,5 +13,4 @@ add_executable(macho_helper_cli main.c)
 target_link_libraries(macho_helper_cli PRIVATE quickmacho)
 
 find_library(FOUNDATION_LIBRARY Foundation)
-
 target_link_libraries(quickmacho PRIVATE "-framework Foundation")
