@@ -56,9 +56,18 @@ int main(int argc, char *argv[])
   parse_macho(&analysis, buffer, size);
 
   if (analysis.is_fat)
+  {
     printf("it is a fat binary\n");
+    for (size_t i = 0; i < analysis.num_arch_analyses; i++)
+    {
+      printf("Architecture: %s\n", analysis.arch_analyses[i].architecture);
+    }
+  }
   else
+  {
     printf("it is a regular Mach-O binary\n");
+    printf("Architecture: %s\n", analysis.arch_analyses[0].architecture);
+  }
 
   free(buffer);
   clean_analysis(&analysis);
