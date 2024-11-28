@@ -30,13 +30,6 @@ void create_analysis(struct analysis *analysis);
 
 void clean_analysis(struct analysis *analysis);
 
-// Parse a Mach-O binary buffer
-void parse_mach_o(struct analysis *analysis, uint8_t *buffer);
-
-// Parse a Fat binary buffer
-void parse_fat(struct analysis *analysis, uint8_t *buffer, size_t size);
-
-// Check if a buffer is a Fat binary
-bool is_fat_header(uint8_t *buffer);
+void parse_macho(struct analysis *analysis, uint8_t *buffer, size_t size);
 
 #endif

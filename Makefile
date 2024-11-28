@@ -1,10 +1,11 @@
 # Build directory
 BUILD_DIR = build
+BUILD_TYPE = Debug
 
 # Default target
 all:
 	@mkdir -p $(BUILD_DIR)
-	@cd $(BUILD_DIR) && cmake .. && cmake --build .
+	@cd $(BUILD_DIR) && cmake -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) .. && cmake --build .
 
 .PHONY: test
 test: all

@@ -25,6 +25,12 @@ void create_analysis(struct analysis *analysis)
   analysis->is_fat = false;
 }
 
+void init_arch_analysis(struct arch_analysis *arch_analysis)
+{
+  arch_analysis->dylibs = NULL;
+  arch_analysis->num_dylibs = 0;
+}
+
 void clean_arch_analysis(struct arch_analysis *arch_analysis)
 {
   for (size_t i = 0; i < arch_analysis->num_dylibs; i++)
@@ -125,50 +131,63 @@ void parse_load_commands(uint8_t *buffer, uint32_t ncmds)
   }
 }
 
-void parse_mach_o(struct analysis *analysis, uint8_t *buffer)
+void parse_mach_o(struct analysis *analysis, int arch_index, uint8_t *buffer)
 {
+  // TODO(tonygo):
+  // - Check if the realloc failed
+  // - Offload this allocation to a function
+  analysis->num_arch_analyses++;
+  analysis->arch_analyses = realloc(analysis->arch_analyses,
+                                    analysis->num_arch_analyses * sizeof(struct arch_analysis));
+
+  struct arch_analysis *arch_analysis = &analysis->arch_analyses[arch_index];
 
   struct mach_header *header = (struct mach_header *)buffer;
   uint32_t cpu_type = header->cputype;
 
-  printf("========================================\n");
   switch (cpu_type)
   {
   case CPU_TYPE_X86:
-    printf("CPU Type: x86\n");
+    strncpy(arch_analysis->architecture, "x86", QUICKMACHO_ARCHITECTURE_SIZE);
     break;
   case CPU_TYPE_X86_64:
-    printf("CPU Type: x86_64\n");
+    strncpy(arch_analysis->architecture, "x86_64", QUICKMACHO_ARCHITECTURE_SIZE);
     break;
   case CPU_TYPE_ARM:
-    printf("CPU Type: ARM\n");
+    strncpy(arch_analysis->architecture, "ARM", QUICKMACHO_ARCHITECTURE_SIZE);
     break;
   case CPU_TYPE_ARM64:
-    printf("CPU Type: ARM64\n");
+    strncpy(arch_analysis->architecture, "ARM64", QUICKMACHO_ARCHITECTURE_SIZE);
     break;
   default:
-    printf("CPU Type: Unknown\n");
+    strncpy(arch_analysis->architecture, "Unknown", QUICKMACHO_ARCHITECTURE_SIZE);
   }
 
   uint32_t ncmds = header->ncmds;
-  printf("Number of load commands: %u\n", ncmds);
 
   parse_load_commands(buffer, ncmds);
 }
 
-void parse_fat(struct analysis *analysis, uint8_t *buffer, size_t size)
+void parse_macho(struct analysis *analysis, uint8_t *buffer, size_t size)
 {
-  analysis->is_fat = true;
-  struct fat_header *header = (struct fat_header *)buffer;
-  uint32_t nfat_arch = ntohl(header->nfat_arch);
-  printf("Number of architectures: %u\n", nfat_arch);
-
-  for (uint32_t i = 0; i < nfat_arch; i++)
+  bool is_fat = is_fat_header(buffer);
+  if (is_fat)
   {
-    struct fat_arch *arch =
-        (struct fat_arch *)(buffer + sizeof(struct fat_header) +
-                            i * sizeof(struct fat_arch));
-    uint32_t offset = ntohl(arch->offset);
-    parse_mach_o(analysis, buffer + offset);
+    analysis->is_fat = true;
+    struct fat_header *header = (struct fat_header *)buffer;
+    uint32_t nfat_arch = ntohl(header->nfat_arch);
+
+    for (uint32_t arch_index = 0; arch_index < nfat_arch; arch_index++)
+    {
+      struct fat_arch *arch =
+          (struct fat_arch *)(buffer + sizeof(struct fat_header) +
+                              arch_index * sizeof(struct fat_arch));
+      uint32_t offset = ntohl(arch->offset);
+      parse_mach_o(analysis, arch_index, buffer + offset);
+    }
+  }
+  else
+  {
+    parse_mach_o(analysis, 0, buffer);
   }
 }

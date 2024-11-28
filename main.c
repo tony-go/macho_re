@@ -53,15 +53,7 @@ int main(int argc, char *argv[])
   struct analysis analysis;
   create_analysis(&analysis);
 
-  // Check magic
-  if (is_fat_header(buffer))
-  {
-    parse_fat(&analysis, buffer, size);
-  }
-  else
-  {
-    parse_mach_o(&analysis, buffer);
-  }
+  parse_macho(&analysis, buffer, size);
 
   if (analysis.is_fat)
     printf("it is a fat binary\n");
