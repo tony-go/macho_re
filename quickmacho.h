@@ -5,6 +5,22 @@
 #include <stddef.h>
 #include <stdbool.h>
 
+struct dylib_info
+{
+  char *path;
+};
+
+struct mach_o_analysis
+{
+  char *architecture;
+  struct dylib_info *dylibs;
+  size_t num_dylibs;
+};
+
+void create_mach_o_analysis(struct mach_o_analysis *analysis);
+
+void clean_mach_o_analysis(struct mach_o_analysis *analysis);
+
 // Parse a Mach-O binary buffer
 void parse_mach_o(uint8_t *buffer);
 

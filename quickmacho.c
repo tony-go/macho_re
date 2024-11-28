@@ -18,6 +18,24 @@ bool is_fat_header(uint8_t *buffer)
          magic == FAT_MAGIC_64 || magic == FAT_CIGAM_64;
 }
 
+void create_mach_o_analysis(struct mach_o_analysis *analysis)
+{
+  analysis->architecture = NULL;
+  analysis->dylibs = NULL;
+  analysis->num_dylibs = 0;
+}
+
+void clean_mach_o_analysis(struct mach_o_analysis *analysis)
+{
+  free(analysis->architecture);
+  for (size_t i = 0; i < analysis->num_dylibs; i++)
+  {
+    free(analysis->dylibs[i].path);
+  }
+  free(analysis->dylibs);
+  analysis->num_dylibs = 0;
+}
+
 // The version is a 32-bit integer in the format 0xMMmmPPPP, where MM is the
 // major version, mm is the minor version, and PPPP is the patch version.
 // We need to extract these values and print them in the format MM.mm.PPPP.

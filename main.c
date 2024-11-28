@@ -50,6 +50,9 @@ int main(int argc, char *argv[])
   }
   fclose(file);
 
+  struct mach_o_analysis analysis;
+  create_mach_o_analysis(&analysis);
+
   // Check magic
   if (is_fat_header(buffer))
   {
@@ -61,5 +64,6 @@ int main(int argc, char *argv[])
   }
 
   free(buffer);
+  clean_mach_o_analysis(&analysis);
   return 0;
 }
