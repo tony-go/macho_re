@@ -50,20 +50,25 @@ int main(int argc, char *argv[])
   }
   fclose(file);
 
-  struct mach_o_analysis analysis;
-  create_mach_o_analysis(&analysis);
+  struct analysis analysis;
+  create_analysis(&analysis);
 
   // Check magic
   if (is_fat_header(buffer))
   {
-    parse_fat(buffer, size);
+    parse_fat(&analysis, buffer, size);
   }
   else
   {
-    parse_mach_o(buffer);
+    parse_mach_o(&analysis, buffer);
   }
 
+  if (analysis.is_fat)
+    printf("it is a fat binary\n");
+  else
+    printf("it is a regular Mach-O binary\n");
+
   free(buffer);
-  clean_mach_o_analysis(&analysis);
+  clean_analysis(&analysis);
   return 0;
 }
