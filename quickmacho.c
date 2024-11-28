@@ -1,12 +1,22 @@
 #include <mach-o/dyld.h>
 #include <mach-o/fat.h>
 #include <mach-o/loader.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "quickmacho.h"
+
 #define VERSION_STR_SIZE 16
 #define NAME_STR_SIZE 256
+
+bool is_fat_header(uint8_t *buffer)
+{
+  uint32_t magic = *(uint32_t *)buffer;
+  return magic == FAT_MAGIC || magic == FAT_CIGAM ||
+         magic == FAT_MAGIC_64 || magic == FAT_CIGAM_64;
+}
 
 // The version is a 32-bit integer in the format 0xMMmmPPPP, where MM is the
 // major version, mm is the minor version, and PPPP is the patch version.

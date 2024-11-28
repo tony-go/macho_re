@@ -1,11 +1,7 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include "quickmacho.h"
 
-#define FAT_MAGIC_64 0xcafebabf
-#define FAT_CIGAM_64 0xbfbafeca
-#define FAT_MAGIC 0xcafebabe
-#define FAT_CIGAM 0xbebafeca
+#include <stdio.h>
+#include <stdlib.h>
 
 void print_usage(const char *program_name)
 {
@@ -55,9 +51,7 @@ int main(int argc, char *argv[])
   fclose(file);
 
   // Check magic
-  uint32_t magic = *(uint32_t *)buffer;
-
-  if (FAT_MAGIC == magic || FAT_CIGAM == magic)
+  if (is_fat_header(buffer))
   {
     parse_fat(buffer, size);
   }
