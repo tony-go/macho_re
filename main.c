@@ -22,11 +22,12 @@ void print_libraries(const struct arch_analysis *arch_analysis)
   printf("   └────────────────\n");
 }
 
-void pretty_print_macho(const struct analysis *analysis)
+void pretty_print_macho(const struct analysis *analysis, const char *path)
 {
   if (analysis->is_fat)
   {
-    printf("📦 Fat Binary (Universal)\n");
+    printf("📦 Fat Binary\n");
+    printf("📂 Path: %s\n", path);
     printf("═══════════════════════\n\n");
 
     for (size_t arch_index = 0; arch_index < analysis->num_arch_analyses; arch_index++)
@@ -37,7 +38,8 @@ void pretty_print_macho(const struct analysis *analysis)
   }
   else
   {
-    printf("📱 Mach-O Binary\n");
+    printf("📦 Mach-O Binary\n");
+    printf("📂 Path: %s\n", path);
     printf("══════════════\n");
     print_libraries(&analysis->arch_analyses[0]);
   }
@@ -88,7 +90,7 @@ int main(int argc, char *argv[])
   create_analysis(&analysis);
 
   parse_macho(&analysis, buffer, size);
-  pretty_print_macho(&analysis);
+  pretty_print_macho(&analysis, filename);
 
   free(buffer);
   clean_analysis(&analysis);
