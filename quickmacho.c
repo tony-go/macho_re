@@ -8,9 +8,6 @@
 
 #include "quickmacho.h"
 
-#define VERSION_STR_SIZE 16
-#define NAME_STR_SIZE 256
-
 bool is_fat_header(uint8_t *buffer)
 {
   uint32_t magic = *(uint32_t *)buffer;
@@ -33,10 +30,6 @@ void init_arch_analysis(struct arch_analysis *arch_analysis)
 
 void clean_arch_analysis(struct arch_analysis *arch_analysis)
 {
-  for (size_t i = 0; i < arch_analysis->num_dylibs; i++)
-  {
-    free(arch_analysis->dylibs[i].path);
-  }
   free(arch_analysis->dylibs);
   arch_analysis->num_dylibs = 0;
 }
@@ -74,7 +67,7 @@ bool parse_dylib_name(struct dylib_command *cmd, char *output_name_str, size_t o
   return written >= output_name_str_size;
 }
 
-void parse_load_commands(uint8_t *buffer, uint32_t ncmds)
+void parse_load_commands(struct arch_analysis *arch_analysis, uint8_t *buffer, uint32_t ncmds)
 {
   struct mach_header *header = (struct mach_header *)buffer;
   uint32_t magic_header = header->magic;
@@ -104,23 +97,21 @@ void parse_load_commands(uint8_t *buffer, uint32_t ncmds)
     {
       struct dylib_command *dylib_cmd = (struct dylib_command *)cmd;
 
-      char name_str[NAME_STR_SIZE];
-      bool is_name_truncated = parse_dylib_name(dylib_cmd, name_str, NAME_STR_SIZE);
-      printf("Load dylib: %s ", name_str);
-      if (is_name_truncated)
-      {
-        printf("(truncated) ");
-      }
-      printf("- ");
+      arch_analysis->num_dylibs++;
+      arch_analysis->dylibs = realloc(arch_analysis->dylibs,
+                                      arch_analysis->num_dylibs * sizeof(struct dylib_info));
 
-      char version_str[VERSION_STR_SIZE];
-      bool is_version_truncated = parse_dylib_version(dylib_cmd, version_str, VERSION_STR_SIZE);
-      printf("version: %s", version_str);
-      if (is_version_truncated)
-      {
-        printf("(truncated) ");
-      }
-      printf("\n");
+      struct dylib_info *dylib_info = &arch_analysis->dylibs[arch_analysis->num_dylibs - 1];
+
+      char name_str[QUICKMACHO_DYLIB_PATH_SIZE];
+      bool is_name_truncated = parse_dylib_name(dylib_cmd, name_str, QUICKMACHO_DYLIB_PATH_SIZE);
+      dylib_info->is_path_truncated = is_name_truncated;
+      strncpy(dylib_info->path, name_str, QUICKMACHO_DYLIB_PATH_SIZE);
+
+      char version_str[QUICKMACHO_DYLIB_VERSION_SIZE];
+      bool is_version_truncated = parse_dylib_version(dylib_cmd, version_str, QUICKMACHO_DYLIB_VERSION_SIZE);
+      dylib_info->is_version_truncated = is_version_truncated;
+      strncpy(dylib_info->version, version_str, QUICKMACHO_DYLIB_VERSION_SIZE);
       break;
     }
     default:
@@ -165,7 +156,7 @@ void parse_mach_o(struct analysis *analysis, int arch_index, uint8_t *buffer)
 
   uint32_t ncmds = header->ncmds;
 
-  parse_load_commands(buffer, ncmds);
+  parse_load_commands(arch_analysis, buffer, ncmds);
 }
 
 void parse_macho(struct analysis *analysis, uint8_t *buffer, size_t size)

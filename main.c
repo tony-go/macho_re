@@ -58,9 +58,15 @@ int main(int argc, char *argv[])
   if (analysis.is_fat)
   {
     printf("it is a fat binary\n");
-    for (size_t i = 0; i < analysis.num_arch_analyses; i++)
+    for (size_t arch_index = 0; arch_index < analysis.num_arch_analyses; arch_index++)
     {
-      printf("Architecture: %s\n", analysis.arch_analyses[i].architecture);
+      printf("Architecture: %s\n", analysis.arch_analyses[arch_index].architecture);
+      printf("Dylibs:\n");
+      struct dylib_info *dylib_info = analysis.arch_analyses[arch_index].dylibs;
+      for (size_t dylib_index = 0; dylib_index < analysis.arch_analyses[arch_index].num_dylibs; dylib_index++)
+      {
+        printf("  %s\n", dylib_info[dylib_index].path);
+      }
     }
   }
   else

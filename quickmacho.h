@@ -6,10 +6,15 @@
 #include <stdbool.h>
 
 #define QUICKMACHO_ARCHITECTURE_SIZE 16
+#define QUICKMACHO_DYLIB_VERSION_SIZE 16
+#define QUICKMACHO_DYLIB_PATH_SIZE 256
 
 struct dylib_info
 {
-  char *path;
+  char path[QUICKMACHO_DYLIB_PATH_SIZE];
+  bool is_path_truncated;
+  char version[QUICKMACHO_DYLIB_VERSION_SIZE];
+  bool is_version_truncated;
 };
 
 struct arch_analysis
