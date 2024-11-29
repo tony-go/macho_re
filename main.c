@@ -9,6 +9,39 @@ void print_usage(const char *program_name)
   printf("Displays linked libraries in a Mach-O binary file\n");
 }
 
+void print_libraries(const struct arch_analysis *arch_analysis)
+{
+  printf("🔧 Architecture: %s\n", arch_analysis->architecture);
+  printf("   ├─ Linked Libraries:\n");
+  struct dylib_info *dylib_info = arch_analysis->dylibs;
+  for (size_t dylib_index = 0; dylib_index < arch_analysis->num_dylibs; dylib_index++)
+  {
+    printf("   │  • %s\n", dylib_info[dylib_index].path);
+  }
+  printf("   └────────────────\n");
+}
+
+void pretty_print_macho(const struct analysis *analysis)
+{
+  if (analysis->is_fat)
+  {
+    printf("📦 Fat Binary (Universal)\n");
+    printf("═══════════════════════\n\n");
+
+    for (size_t arch_index = 0; arch_index < analysis->num_arch_analyses; arch_index++)
+    {
+      print_libraries(&analysis->arch_analyses[arch_index]);
+      printf("\n");
+    }
+  }
+  else
+  {
+    printf("📱 Mach-O Binary\n");
+    printf("══════════════\n");
+    print_libraries(&analysis->arch_analyses[0]);
+  }
+}
+
 int main(int argc, char *argv[])
 {
   if (argc != 2)
@@ -54,37 +87,7 @@ int main(int argc, char *argv[])
   create_analysis(&analysis);
 
   parse_macho(&analysis, buffer, size);
-
-  if (analysis.is_fat)
-  {
-    printf("📦 Fat Binary (Universal)\n");
-    printf("═══════════════════════\n\n");
-
-    for (size_t arch_index = 0; arch_index < analysis.num_arch_analyses; arch_index++)
-    {
-      printf("🔧 Architecture: %s\n", analysis.arch_analyses[arch_index].architecture);
-      printf("   ├─ Linked Libraries:\n");
-      struct dylib_info *dylib_info = analysis.arch_analyses[arch_index].dylibs;
-      for (size_t dylib_index = 0; dylib_index < analysis.arch_analyses[arch_index].num_dylibs; dylib_index++)
-      {
-        printf("   │  • %s\n", dylib_info[dylib_index].path);
-      }
-      printf("   └────────────────\n\n");
-    }
-  }
-  else
-  {
-    printf("📱 Mach-O Binary\n");
-    printf("══════════════\n");
-    printf("🔧 Architecture: %s\n", analysis.arch_analyses[0].architecture);
-    printf("   ├─ Linked Libraries:\n");
-    struct dylib_info *dylib_info = analysis.arch_analyses[0].dylibs;
-    for (size_t dylib_index = 0; dylib_index < analysis.arch_analyses[0].num_dylibs; dylib_index++)
-    {
-      printf("   │  • %s\n", dylib_info[dylib_index].path);
-    }
-    printf("   └────────────────\n");
-  }
+  pretty_print_macho(&analysis);
 
   free(buffer);
   clean_analysis(&analysis);
