@@ -17,6 +17,7 @@ void print_libraries(const struct arch_analysis *arch_analysis)
   for (size_t dylib_index = 0; dylib_index < arch_analysis->num_dylibs; dylib_index++)
   {
     printf("   │  • %s\n", dylib_info[dylib_index].path);
+    printf("   │   └─ Version: %s\n", dylib_info[dylib_index].version);
   }
   printf("   └────────────────\n");
 }
