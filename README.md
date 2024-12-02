@@ -57,3 +57,71 @@ make
 
 ## C API
 
+`macho_re` provides a C library (`libmachore`) that can be used to parse Mach-O binaries programmatically.
+
+### Data Structures
+
+```c
+struct dylib_info {
+    char path[LIBMACHORE_DYLIB_PATH_SIZE];     // Path to the dynamic library
+    bool is_path_truncated;                     // True if path was truncated
+    char version[LIBMACHORE_DYLIB_VERSION_SIZE]; // Version string (format: MM.mm.PPPP)
+    bool is_version_truncated;                  // True if version was truncated
+};
+
+struct arch_analysis {
+    char architecture[LIBMACHORE_ARCHITECTURE_SIZE]; // CPU architecture (x86, x86_64, ARM, ARM64)
+    struct dylib_info *dylibs;                      // Array of dynamic libraries
+    size_t num_dylibs;                              // Number of dynamic libraries
+};
+
+struct analysis {
+    struct arch_analysis *arch_analyses;    // Array of architecture analyses
+    size_t num_arch_analyses;               // Number of architectures
+    bool is_fat;                            // True if binary is a fat/universal binary
+};
+```
+
+### Functions
+
+#### `void create_analysis(struct analysis *analysis)`
+Initializes a new analysis structure. Must be called before using the analysis structure.
+
+#### `void clean_analysis(struct analysis *analysis)`
+Frees all resources associated with an analysis structure. Should be called when analysis is no longer needed.
+
+#### `void parse_macho(struct analysis *analysis, uint8_t *buffer, size_t size)`
+Parses a Mach-O binary from a memory buffer.
+
+- `analysis`: Pointer to an initialized analysis structure
+- `buffer`: Pointer to the binary data
+- `size`: Size of the binary data in bytes
+
+### Example Usage
+
+```c
+// Read binary file into buffer
+uint8_t *buffer = /* ... */;
+size_t size = /* ... */;
+
+// Initialize analysis
+struct analysis analysis;
+create_analysis(&analysis);
+
+// Parse the binary
+parse_macho(&analysis, buffer, size);
+
+// Use the results
+for (size_t i = 0; i < analysis.num_arch_analyses; i++) {
+    struct arch_analysis *arch = &analysis.arch_analyses[i];
+    printf("Architecture: %s\n", arch->architecture);
+
+    for (size_t j = 0; j < arch->num_dylibs; j++) {
+        struct dylib_info *lib = &arch->dylibs[j];
+        printf("Library: %s (version %s)\n", lib->path, lib->version);
+    }
+}
+
+// Clean up
+clean_analysis(&analysis);
+```
