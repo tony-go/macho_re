@@ -1,4 +1,4 @@
-#include "quickmacho.h"
+#include "libmachore.h"
 
 #include <stdio.h>
 #include <stdlib.h>
