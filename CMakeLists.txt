@@ -7,10 +7,10 @@ project(macho_parser
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
-add_library(quickmacho quickmacho.c quickmacho.h)
-
-add_executable(macho_helper_cli main.c)
-target_link_libraries(macho_helper_cli PRIVATE quickmacho)
-
+add_library(libmachore libmachore.c libmachore.h)
 find_library(FOUNDATION_LIBRARY Foundation)
-target_link_libraries(quickmacho PRIVATE "-framework Foundation")
+target_link_libraries(libmachore PRIVATE "-framework Foundation")
+
+add_executable(machore cli.c)
+target_link_libraries(machore PRIVATE libmachore)
+

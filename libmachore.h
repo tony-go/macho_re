@@ -1,25 +1,25 @@
-#ifndef QUICKMACHO_H
-#define QUICKMACHO_H
+#ifndef LIBMACHORE_H
+#define LIBMACHORE_H
 
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
 
-#define QUICKMACHO_ARCHITECTURE_SIZE 16
-#define QUICKMACHO_DYLIB_VERSION_SIZE 16
-#define QUICKMACHO_DYLIB_PATH_SIZE 256
+#define LIBMACHORE_ARCHITECTURE_SIZE 16
+#define LIBMACHORE_DYLIB_VERSION_SIZE 16
+#define LIBMACHORE_DYLIB_PATH_SIZE 256
 
 struct dylib_info
 {
-  char path[QUICKMACHO_DYLIB_PATH_SIZE];
+  char path[LIBMACHORE_DYLIB_PATH_SIZE];
   bool is_path_truncated;
-  char version[QUICKMACHO_DYLIB_VERSION_SIZE];
+  char version[LIBMACHORE_DYLIB_VERSION_SIZE];
   bool is_version_truncated;
 };
 
 struct arch_analysis
 {
-  char architecture[QUICKMACHO_ARCHITECTURE_SIZE];
+  char architecture[LIBMACHORE_ARCHITECTURE_SIZE];
   struct dylib_info *dylibs;
   size_t num_dylibs;
 };

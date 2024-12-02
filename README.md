@@ -1,8 +1,8 @@
-# QuickMacho
+# libmachore
 
 > ⚠️ **Note:** This project is currently under active development. Features and APIs may change.
 
-QuickMacho is a lightweight command-line tool for parsing and analyzing Mach-O binary files on macOS. It displays information about linked libraries, CPU architectures, and version information for each dynamic library in the binary.
+libmachore is a lightweight command-line tool for parsing and analyzing Mach-O binary files on macOS. It displays information about linked libraries, CPU architectures, and version information for each dynamic library in the binary.
 
 ## Features
 
@@ -14,7 +14,7 @@ QuickMacho is a lightweight command-line tool for parsing and analyzing Mach-O b
 
 ## Building
 
-QuickMacho uses CMake as its build system. To build the project:
+libmachore uses CMake as its build system. To build the project:
 
 ```bash
 make
@@ -22,12 +22,14 @@ make
 
 ## Usage
 
+### CLI
+
 ```bash
-./build/quickmacho <path_to_macho_file>
+./build/machore <path_to_macho_file>
 ```
 
 ```
-❯ ./build/quickmacho /bin/ls
+❯ ./build/machore /bin/ls
 📦 Fat Binary
 📂 Path: /bin/ls
 ═══════════════════════

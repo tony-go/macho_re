@@ -9,7 +9,7 @@ all:
 
 .PHONY: test
 test: all
-	@./$(BUILD_DIR)/macho_helper_cli /bin/ls
+	@./$(BUILD_DIR)/machore /bin/ls
 
 # Clean build directory
 .PHONY: clean

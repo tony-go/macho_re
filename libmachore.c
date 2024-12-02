@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "quickmacho.h"
+#include "libmachore.h"
 
 bool is_fat_header(uint8_t *buffer)
 {
@@ -103,15 +103,15 @@ void parse_load_commands(struct arch_analysis *arch_analysis, uint8_t *buffer, u
 
       struct dylib_info *dylib_info = &arch_analysis->dylibs[arch_analysis->num_dylibs - 1];
 
-      char name_str[QUICKMACHO_DYLIB_PATH_SIZE];
-      bool is_name_truncated = parse_dylib_name(dylib_cmd, name_str, QUICKMACHO_DYLIB_PATH_SIZE);
+      char name_str[LIBMACHORE_DYLIB_PATH_SIZE];
+      bool is_name_truncated = parse_dylib_name(dylib_cmd, name_str, LIBMACHORE_DYLIB_PATH_SIZE);
       dylib_info->is_path_truncated = is_name_truncated;
-      strncpy(dylib_info->path, name_str, QUICKMACHO_DYLIB_PATH_SIZE);
+      strncpy(dylib_info->path, name_str, LIBMACHORE_DYLIB_PATH_SIZE);
 
-      char version_str[QUICKMACHO_DYLIB_VERSION_SIZE];
-      bool is_version_truncated = parse_dylib_version(dylib_cmd, version_str, QUICKMACHO_DYLIB_VERSION_SIZE);
+      char version_str[LIBMACHORE_DYLIB_VERSION_SIZE];
+      bool is_version_truncated = parse_dylib_version(dylib_cmd, version_str, LIBMACHORE_DYLIB_VERSION_SIZE);
       dylib_info->is_version_truncated = is_version_truncated;
-      strncpy(dylib_info->version, version_str, QUICKMACHO_DYLIB_VERSION_SIZE);
+      strncpy(dylib_info->version, version_str, LIBMACHORE_DYLIB_VERSION_SIZE);
       break;
     }
     default:
@@ -139,19 +139,19 @@ void parse_mach_o(struct analysis *analysis, int arch_index, uint8_t *buffer)
   switch (cpu_type)
   {
   case CPU_TYPE_X86:
-    strncpy(arch_analysis->architecture, "x86", QUICKMACHO_ARCHITECTURE_SIZE);
+    strncpy(arch_analysis->architecture, "x86", LIBMACHORE_ARCHITECTURE_SIZE);
     break;
   case CPU_TYPE_X86_64:
-    strncpy(arch_analysis->architecture, "x86_64", QUICKMACHO_ARCHITECTURE_SIZE);
+    strncpy(arch_analysis->architecture, "x86_64", LIBMACHORE_ARCHITECTURE_SIZE);
     break;
   case CPU_TYPE_ARM:
-    strncpy(arch_analysis->architecture, "ARM", QUICKMACHO_ARCHITECTURE_SIZE);
+    strncpy(arch_analysis->architecture, "ARM", LIBMACHORE_ARCHITECTURE_SIZE);
     break;
   case CPU_TYPE_ARM64:
-    strncpy(arch_analysis->architecture, "ARM64", QUICKMACHO_ARCHITECTURE_SIZE);
+    strncpy(arch_analysis->architecture, "ARM64", LIBMACHORE_ARCHITECTURE_SIZE);
     break;
   default:
-    strncpy(arch_analysis->architecture, "Unknown", QUICKMACHO_ARCHITECTURE_SIZE);
+    strncpy(arch_analysis->architecture, "Unknown", LIBMACHORE_ARCHITECTURE_SIZE);
   }
 
   uint32_t ncmds = header->ncmds;
