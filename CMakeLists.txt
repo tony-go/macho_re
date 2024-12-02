@@ -11,6 +11,5 @@ add_library(libmachore libmachore.c libmachore.h)
 find_library(FOUNDATION_LIBRARY Foundation)
 target_link_libraries(libmachore PRIVATE "-framework Foundation")
 
-add_executable(machore cli.c)
-target_link_libraries(machore PRIVATE libmachore)
-
+add_executable(macho_re main.c)
+target_link_libraries(macho_re PRIVATE libmachore)

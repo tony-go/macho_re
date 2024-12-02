@@ -1,8 +1,8 @@
-# libmachore
+# macho_re
 
 > ⚠️ **Note:** This project is currently under active development. Features and APIs may change.
 
-libmachore is a lightweight command-line tool for parsing and analyzing Mach-O binary files on macOS. It displays information about linked libraries, CPU architectures, and version information for each dynamic library in the binary.
+`macho_re` is a lightweight command-line tool for parsing and analyzing Mach-O binary files on macOS. It displays information about linked libraries, CPU architectures, and version information for each dynamic library in the binary.
 
 ## Features
 
@@ -14,7 +14,7 @@ libmachore is a lightweight command-line tool for parsing and analyzing Mach-O b
 
 ## Building
 
-libmachore uses CMake as its build system. To build the project:
+`macho_re` uses CMake as its build system. To build the project:
 
 ```bash
 make
@@ -25,11 +25,11 @@ make
 ### CLI
 
 ```bash
-./build/machore <path_to_macho_file>
+./build/macho_re <path_to_macho_file>
 ```
 
 ```
-❯ ./build/machore /bin/ls
+❯ ./build/macho_re /bin/ls
 📦 Fat Binary
 📂 Path: /bin/ls
 ═══════════════════════
@@ -54,3 +54,6 @@ make
    │   └─ Version: 5.71.0
    └────────────────
 ```
+
+## C API
+
