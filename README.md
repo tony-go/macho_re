@@ -30,11 +30,13 @@ make
 
 ```
 ❯ ./build/macho_re /bin/ls
+
 📦 Fat Binary
 📂 Path: /bin/ls
 ═══════════════════════
 
 🔧 Architecture: x86_64
+📁 File Type: Executable
    ├─ Linked Libraries:
    │  • /usr/lib/libutil.dylib
    │   └─ Version: 0.1.0
@@ -45,6 +47,7 @@ make
    └────────────────
 
 🔧 Architecture: ARM64
+📁 File Type: Executable
    ├─ Linked Libraries:
    │  • /usr/lib/libutil.dylib
    │   └─ Version: 0.1.0
@@ -66,11 +69,20 @@ struct dylib_info {
     char path[LIBMACHORE_DYLIB_PATH_SIZE];     // Path to the dynamic library
     bool is_path_truncated;                     // True if path was truncated
     char version[LIBMACHORE_DYLIB_VERSION_SIZE]; // Version string (format: MM.mm.PPPP)
-    bool is_version_truncated;                  // True if version was truncated
 };
+
+typedef enum
+{
+  FILETYPE_EXEC,
+  FILETYPE_DYLIB,
+  FILETYPE_BUNDLE,
+  FILETYPE_OBJECT,
+  FILETYPE_NOT_SUPPORTED
+} filetype_t;
 
 struct arch_analysis {
     char architecture[LIBMACHORE_ARCHITECTURE_SIZE]; // CPU architecture (x86, x86_64, ARM, ARM64)
+    filetype_t filetype;                            // File type (EXEC, DYLIB, BUNDLE, OBJECT, NOT_SUPPORTED)
     struct dylib_info *dylibs;                      // Array of dynamic libraries
     size_t num_dylibs;                              // Number of dynamic libraries
 };
