@@ -9,9 +9,29 @@ void print_usage(const char *program_name)
   printf("Displays linked libraries in a Mach-O binary file\n");
 }
 
-void print_libraries(const struct arch_analysis *arch_analysis)
+const char *filetype_to_string(filetype_t filetype)
+{
+  switch (filetype)
+  {
+  case FILETYPE_EXEC:
+    return "Executable";
+  case FILETYPE_DYLIB:
+    return "Dynamic Library";
+  case FILETYPE_BUNDLE:
+    return "Bundle";
+  case FILETYPE_OBJECT:
+    return "Object";
+  case FILETYPE_NOT_SUPPORTED:
+    return "Not Supported";
+  default:
+    return "Unknown";
+  }
+}
+
+void print_arch(const struct arch_analysis *arch_analysis)
 {
   printf("🔧 Architecture: %s\n", arch_analysis->architecture);
+  printf("📁 File Type: %s\n", filetype_to_string(arch_analysis->filetype));
   printf("   ├─ Linked Libraries:\n");
   struct dylib_info *dylib_info = arch_analysis->dylibs;
   for (size_t dylib_index = 0; dylib_index < arch_analysis->num_dylibs; dylib_index++)
@@ -32,7 +52,7 @@ void pretty_print_macho(const struct analysis *analysis, const char *path)
 
     for (size_t arch_index = 0; arch_index < analysis->num_arch_analyses; arch_index++)
     {
-      print_libraries(&analysis->arch_analyses[arch_index]);
+      print_arch(&analysis->arch_analyses[arch_index]);
       printf("\n");
     }
   }
@@ -41,7 +61,7 @@ void pretty_print_macho(const struct analysis *analysis, const char *path)
     printf("📦 Mach-O Binary\n");
     printf("📂 Path: %s\n", path);
     printf("══════════════\n");
-    print_libraries(&analysis->arch_analyses[0]);
+    print_arch(&analysis->arch_analyses[0]);
   }
 }
 

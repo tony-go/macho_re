@@ -16,9 +16,19 @@ struct dylib_info
   char version[LIBMACHORE_DYLIB_VERSION_SIZE];
 };
 
+typedef enum
+{
+  FILETYPE_EXEC,
+  FILETYPE_DYLIB,
+  FILETYPE_BUNDLE,
+  FILETYPE_OBJECT,
+  FILETYPE_NOT_SUPPORTED
+} filetype_t;
+
 struct arch_analysis
 {
   char architecture[LIBMACHORE_ARCHITECTURE_SIZE];
+  filetype_t filetype;
   struct dylib_info *dylibs;
   size_t num_dylibs;
 };

@@ -153,8 +153,27 @@ void parse_mach_o(struct analysis *analysis, int arch_index, uint8_t *buffer)
     strncpy(arch_analysis->architecture, "Unknown", LIBMACHORE_ARCHITECTURE_SIZE);
   }
 
-  uint32_t ncmds = header->ncmds;
+  uint32_t filetype = header->filetype;
+  switch (filetype)
+  {
+  case MH_DYLIB:
+    arch_analysis->filetype = FILETYPE_DYLIB;
+    break;
+  case MH_EXECUTE:
+    arch_analysis->filetype = FILETYPE_EXEC;
+    break;
+  case MH_BUNDLE:
+    arch_analysis->filetype = FILETYPE_BUNDLE;
+    break;
+  case MH_OBJECT:
+    arch_analysis->filetype = FILETYPE_OBJECT;
+    break;
+  default:
+    arch_analysis->filetype = FILETYPE_NOT_SUPPORTED;
+    break;
+  }
 
+  uint32_t ncmds = header->ncmds;
   parse_load_commands(arch_analysis, buffer, ncmds);
 }
 
