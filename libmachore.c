@@ -108,10 +108,16 @@ void parse_load_commands(struct arch_analysis *arch_analysis, uint8_t *buffer, u
       dylib_info->is_path_truncated = is_name_truncated;
       strncpy(dylib_info->path, name_str, LIBMACHORE_DYLIB_PATH_SIZE);
 
+<<<<<<< Updated upstream:libmachore.c
       char version_str[LIBMACHORE_DYLIB_VERSION_SIZE];
       bool is_version_truncated = parse_dylib_version(dylib_cmd, version_str, LIBMACHORE_DYLIB_VERSION_SIZE);
       dylib_info->is_version_truncated = is_version_truncated;
       strncpy(dylib_info->version, version_str, LIBMACHORE_DYLIB_VERSION_SIZE);
+=======
+      char version_str[QUICKMACHO_DYLIB_VERSION_SIZE];
+      bool is_version_truncated = parse_dylib_version(dylib_cmd, version_str, QUICKMACHO_DYLIB_VERSION_SIZE);
+      strncpy(dylib_info->version, version_str, QUICKMACHO_DYLIB_VERSION_SIZE);
+>>>>>>> Stashed changes:quickmacho.c
       break;
     }
     default:

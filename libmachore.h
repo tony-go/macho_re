@@ -13,8 +13,12 @@ struct dylib_info
 {
   char path[LIBMACHORE_DYLIB_PATH_SIZE];
   bool is_path_truncated;
+<<<<<<< Updated upstream:libmachore.h
   char version[LIBMACHORE_DYLIB_VERSION_SIZE];
   bool is_version_truncated;
+=======
+  char version[QUICKMACHO_DYLIB_VERSION_SIZE];
+>>>>>>> Stashed changes:quickmacho.h
 };
 
 struct arch_analysis
