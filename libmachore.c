@@ -109,8 +109,7 @@ void parse_load_commands(struct arch_analysis *arch_analysis, uint8_t *buffer, u
       strncpy(dylib_info->path, name_str, LIBMACHORE_DYLIB_PATH_SIZE);
 
       char version_str[LIBMACHORE_DYLIB_VERSION_SIZE];
-      bool is_version_truncated = parse_dylib_version(dylib_cmd, version_str, LIBMACHORE_DYLIB_VERSION_SIZE);
-      dylib_info->is_version_truncated = is_version_truncated;
+      parse_dylib_version(dylib_cmd, version_str, LIBMACHORE_DYLIB_VERSION_SIZE);
       strncpy(dylib_info->version, version_str, LIBMACHORE_DYLIB_VERSION_SIZE);
       break;
     }
