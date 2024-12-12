@@ -19,4 +19,6 @@ add_executable(macho_re main.c)
 target_link_libraries(macho_re PRIVATE libmachore)
 
 # Add tests
+find_package(GoogleTest REQUIRED)
+enable_testing()
 add_subdirectory(test)
