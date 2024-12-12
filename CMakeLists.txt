@@ -5,21 +5,20 @@ project(macho_parser
 
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
-# Set C standard
+# Set C and C++ standard
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_STANDARD 11) # Needed for googletest 
+set(CMAKE_CXX_STANDARD_REQUIRED ON) # Needed for googletest
 
-# Set C++ standard (needed for gtest)
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+# Add libmachore library
+add_subdirectory(lib)
 
-add_library(libmachore libmachore.c libmachore.h)
-find_library(FOUNDATION_LIBRARY Foundation)
-target_link_libraries(libmachore PRIVATE "-framework Foundation")
-
+# Add cli executable
 add_executable(macho_re main.c)
 target_link_libraries(macho_re PRIVATE libmachore)
 
+# Add tests
 find_package(GoogleTest REQUIRED)
 enable_testing()
 add_subdirectory(test)

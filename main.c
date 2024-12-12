@@ -1,4 +1,4 @@
-#include "libmachore.h"
+#include "lib/libmachore.h"
 
 #include <stdio.h>
 #include <stdlib.h>
