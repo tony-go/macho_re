@@ -49,7 +49,6 @@ bool parse_dylib_version(struct dylib_command *cmd, char *output_version_str,
   uint32_t major = (version >> 24) & 0xFF;
   uint32_t minor = (version >> 16) & 0xFF;
   uint32_t patch = version & 0xFF;
-  char *version_str = malloc(10);
   // return a string in the format MM.mm.PPPP
   size_t written = snprintf(output_version_str, output_version_str_size,
                             "%u.%u.%u", major, minor, patch);
