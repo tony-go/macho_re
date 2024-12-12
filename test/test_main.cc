@@ -77,3 +77,23 @@ TEST(libmachore, parse_macho) {
   free(buffer);
   clean_analysis(&analysis);
 }
+
+TEST(libmachore, parse_macho_arch) {
+  struct analysis analysis;
+  create_analysis(&analysis);
+
+  const char *filename = "/bin/ls";
+  uint8_t *buffer = nullptr;
+  size_t buffer_size = 0;
+  read_file_to_buffer(filename, &buffer, &buffer_size);
+
+  parse_macho(&analysis, buffer, buffer_size);
+  struct arch_analysis *arch_analysis = &analysis.arch_analyses[0];
+
+  EXPECT_STREQ(arch_analysis->architecture, "x86_64");
+  EXPECT_EQ(arch_analysis->filetype, FILETYPE_EXEC);
+  EXPECT_EQ(arch_analysis->num_dylibs, 3);
+
+  free(buffer);
+  clean_analysis(&analysis);
+}
