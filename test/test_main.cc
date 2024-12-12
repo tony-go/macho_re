@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 extern "C" {
-#include "../libmachore.h"
+#include "../lib/libmachore.h"
 }
 
 TEST(libmachore, create_analysis) {
