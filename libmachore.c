@@ -35,7 +35,9 @@ void clean_analysis(struct analysis *analysis) {
     clean_arch_analysis(&analysis->arch_analyses[i]);
   }
   free(analysis->arch_analyses);
+  analysis->arch_analyses = NULL;
   analysis->num_arch_analyses = 0;
+  analysis->is_fat = false;
 }
 
 // The version is a 32-bit integer in the format 0xMMmmPPPP, where MM is the
