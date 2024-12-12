@@ -97,3 +97,31 @@ TEST(libmachore, parse_macho_arch) {
   free(buffer);
   clean_analysis(&analysis);
 }
+
+TEST(libmachore, parse_macho_dylib) {
+  struct analysis analysis;
+  create_analysis(&analysis);
+
+  const char *filename = "/bin/ls";
+  uint8_t *buffer = nullptr;
+  size_t buffer_size = 0;
+  read_file_to_buffer(filename, &buffer, &buffer_size);
+
+  parse_macho(&analysis, buffer, buffer_size);
+
+  struct arch_analysis *arch_analysis = &analysis.arch_analyses[0];
+  struct dylib_info *dylib_info_1 = &arch_analysis->dylibs[0];
+  EXPECT_STREQ(dylib_info_1->path, "/usr/lib/libutil.dylib");
+  EXPECT_FALSE(dylib_info_1->version[0] == '\0');
+
+  struct dylib_info *dylib_info_2 = &arch_analysis->dylibs[1];
+  EXPECT_STREQ(dylib_info_2->path, "/usr/lib/libncurses.5.4.dylib");
+  EXPECT_FALSE(dylib_info_2->version[0] == '\0');
+
+  struct dylib_info *dylib_info_3 = &arch_analysis->dylibs[2];
+  EXPECT_STREQ(dylib_info_3->path, "/usr/lib/libSystem.B.dylib");
+  EXPECT_FALSE(dylib_info_3->version[0] == '\0');
+
+  free(buffer);
+  clean_analysis(&analysis);
+}
