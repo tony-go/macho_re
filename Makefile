@@ -9,6 +9,11 @@ all:
 
 .PHONY: test
 test: all
+	ctest --test-dir $(BUILD_DIR) --output-on-failure
+
+
+.PHONY: run
+run: all
 	@./$(BUILD_DIR)/macho_re /bin/ls
 
 # Clean build directory
