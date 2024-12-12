@@ -18,6 +18,8 @@ const char *filetype_to_string(filetype_t filetype) {
     return "Bundle";
   case FILETYPE_OBJECT:
     return "Object";
+  case FILETYPE_CORE_DUMP:
+    return "Core Dump";
   case FILETYPE_NOT_SUPPORTED:
     return "Not Supported";
   default:
