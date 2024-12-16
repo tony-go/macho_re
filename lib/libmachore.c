@@ -22,11 +22,6 @@ bool is_fat_header(uint8_t *buffer) {
          magic == FAT_CIGAM_64;
 }
 
-void init_arch_analysis(struct arch_analysis *arch_analysis) {
-  arch_analysis->dylibs = NULL;
-  arch_analysis->num_dylibs = 0;
-}
-
 void clean_arch_analysis(struct arch_analysis *arch_analysis) {
   free(arch_analysis->dylibs);
   arch_analysis->num_dylibs = 0;
@@ -54,11 +49,34 @@ bool parse_dylib_name(struct dylib_command *cmd, char *output_name_str,
   return written >= output_name_str_size;
 }
 
+void parse_dylib_command(struct dylib_command *dylib_cmd,
+                         struct arch_analysis *arch_analysis) {
+  arch_analysis->num_dylibs++;
+  arch_analysis->dylibs =
+      realloc(arch_analysis->dylibs,
+              arch_analysis->num_dylibs * sizeof(struct dylib_info));
+
+  struct dylib_info *dylib_info =
+      &arch_analysis->dylibs[arch_analysis->num_dylibs - 1];
+
+  char name_str[LIBMACHORE_DYLIB_PATH_SIZE];
+  bool is_name_truncated =
+      parse_dylib_name(dylib_cmd, name_str, LIBMACHORE_DYLIB_PATH_SIZE);
+  dylib_info->is_path_truncated = is_name_truncated;
+  strncpy(dylib_info->path, name_str, LIBMACHORE_DYLIB_PATH_SIZE);
+
+  char version_str[LIBMACHORE_DYLIB_VERSION_SIZE];
+  parse_dylib_version(dylib_cmd, version_str, LIBMACHORE_DYLIB_VERSION_SIZE);
+  strncpy(dylib_info->version, version_str, LIBMACHORE_DYLIB_VERSION_SIZE);
+}
+
 void parse_load_commands(struct arch_analysis *arch_analysis, uint8_t *buffer,
                          uint32_t ncmds) {
   struct mach_header *header = (struct mach_header *)buffer;
   uint32_t magic_header = header->magic;
 
+  // Go to the first load command
+  // account for the size of the mach header
   uint8_t *cmd;
   if (magic_header == MH_MAGIC_64) {
     cmd = buffer + sizeof(struct mach_header_64);
@@ -76,26 +94,7 @@ void parse_load_commands(struct arch_analysis *arch_analysis, uint8_t *buffer,
     case LC_REEXPORT_DYLIB:
     case LC_LOAD_UPWARD_DYLIB:
     case LC_LAZY_LOAD_DYLIB: {
-      struct dylib_command *dylib_cmd = (struct dylib_command *)cmd;
-
-      arch_analysis->num_dylibs++;
-      arch_analysis->dylibs =
-          realloc(arch_analysis->dylibs,
-                  arch_analysis->num_dylibs * sizeof(struct dylib_info));
-
-      struct dylib_info *dylib_info =
-          &arch_analysis->dylibs[arch_analysis->num_dylibs - 1];
-
-      char name_str[LIBMACHORE_DYLIB_PATH_SIZE];
-      bool is_name_truncated =
-          parse_dylib_name(dylib_cmd, name_str, LIBMACHORE_DYLIB_PATH_SIZE);
-      dylib_info->is_path_truncated = is_name_truncated;
-      strncpy(dylib_info->path, name_str, LIBMACHORE_DYLIB_PATH_SIZE);
-
-      char version_str[LIBMACHORE_DYLIB_VERSION_SIZE];
-      parse_dylib_version(dylib_cmd, version_str,
-                          LIBMACHORE_DYLIB_VERSION_SIZE);
-      strncpy(dylib_info->version, version_str, LIBMACHORE_DYLIB_VERSION_SIZE);
+      parse_dylib_command((struct dylib_command *)lc, arch_analysis);
       break;
     }
     default:
