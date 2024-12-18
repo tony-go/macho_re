@@ -2,6 +2,7 @@
 #include <mach-o/fat.h>
 #include <mach-o/loader.h>
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -25,6 +26,9 @@ bool is_fat_header(uint8_t *buffer) {
 void clean_arch_analysis(struct arch_analysis *arch_analysis) {
   free(arch_analysis->dylibs);
   arch_analysis->num_dylibs = 0;
+
+  free(arch_analysis->strings);
+  arch_analysis->num_strings = 0;
 }
 
 // The version is a 32-bit integer in the format 0xMMmmPPPP, where MM is the
@@ -70,6 +74,46 @@ void parse_dylib_command(struct dylib_command *dylib_cmd,
   strncpy(dylib_info->version, version_str, LIBMACHORE_DYLIB_VERSION_SIZE);
 }
 
+void parse_cstring_section(struct arch_analysis *arch_analysis, uint8_t *buffer,
+                           struct section_64 *sect) {
+  char *string_start = (char *)buffer + sect->offset;
+  char *string_end = string_start + sect->size;
+  char *string = string_start;
+  while (string < string_end) {
+    const size_t string_length = strlen(string);
+    if (string_length > 0) {
+      arch_analysis->num_strings++;
+      arch_analysis->strings =
+          realloc(arch_analysis->strings,
+                  arch_analysis->num_strings * sizeof(struct string_info));
+      struct string_info *string_info =
+          &arch_analysis->strings[arch_analysis->num_strings - 1];
+      assert(string_info != NULL);
+
+      string_info->size = string_length + 1;
+      string_info->content = malloc(string_info->size);
+      assert(string_info->content != NULL);
+      strcpy(string_info->content, string);
+
+      strncpy(string_info->original_section, sect->sectname, 24);
+      string_info->original_offset = sect->offset + (string - string_start);
+    }
+    // The + 1 is to skip the null terminator
+    string += string_length + 1;
+  };
+}
+
+void parse_text_segment64(struct arch_analysis *arch_analysis, uint8_t *buffer,
+                          struct segment_command_64 *seg) {
+  struct section_64 *sect = (void *)seg + sizeof(struct segment_command_64);
+  for (uint32_t index = 0; index < seg->nsects; index++) {
+    if (strcmp(sect->sectname, "__cstring") == 0) {
+      parse_cstring_section(arch_analysis, buffer, sect);
+    }
+    sect++;
+  }
+}
+
 void parse_load_commands(struct arch_analysis *arch_analysis, uint8_t *buffer,
                          uint32_t ncmds) {
   struct mach_header *header = (struct mach_header *)buffer;
@@ -96,6 +140,12 @@ void parse_load_commands(struct arch_analysis *arch_analysis, uint8_t *buffer,
     case LC_LAZY_LOAD_DYLIB: {
       parse_dylib_command((struct dylib_command *)lc, arch_analysis);
       break;
+    }
+    case LC_SEGMENT_64: {
+      struct segment_command_64 *seg = (struct segment_command_64 *)lc;
+      if (strcmp(seg->segname, "__TEXT") == 0) {
+        parse_text_segment64(arch_analysis, buffer, seg);
+      }
     }
     default:
       break;

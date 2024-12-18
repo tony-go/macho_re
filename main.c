@@ -37,6 +37,14 @@ void print_arch(const struct arch_analysis *arch_analysis) {
     printf("   │  • %s\n", dylib_info[dylib_index].path);
     printf("   │   └─ Version: %s\n", dylib_info[dylib_index].version);
   }
+  printf("   ├─ String:\n");
+  struct string_info *string_info = arch_analysis->strings;
+  for (size_t string_index = 0; string_index < arch_analysis->num_dylibs;
+       string_index++) {
+    printf("   │  • %s\n", string_info[string_index].content);
+    printf("   │   └─ Section: %s\n",
+           string_info[string_index].original_section);
+  }
   printf("   └────────────────\n");
 }
 
