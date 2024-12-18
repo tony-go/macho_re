@@ -144,6 +144,7 @@ void parse_load_commands(struct arch_analysis *arch_analysis, uint8_t *buffer,
     case LC_REEXPORT_DYLIB:
     case LC_LOAD_UPWARD_DYLIB:
     case LC_LAZY_LOAD_DYLIB: {
+      // TODO: we should add context, like the original_load_command
       parse_dylib_command((struct dylib_command *)lc, arch_analysis);
       break;
     }
