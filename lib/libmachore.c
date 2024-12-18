@@ -74,39 +74,35 @@ void parse_dylib_command(struct dylib_command *dylib_cmd,
   strncpy(dylib_info->version, version_str, LIBMACHORE_DYLIB_VERSION_SIZE);
 }
 
+#define PARSE_CSTRING_SECTION(arch_analysis, buffer, sect, segment_name)       \
+  char *string_start = (char *)buffer + sect->offset;                          \
+  char *string_end = string_start + sect->size;                                \
+  char *string = string_start;                                                 \
+  while (string < string_end) {                                                \
+    const size_t string_length = strlen(string);                               \
+    if (string_length > 0) {                                                   \
+      arch_analysis->num_strings++;                                            \
+      arch_analysis->strings =                                                 \
+          realloc(arch_analysis->strings,                                      \
+                  arch_analysis->num_strings * sizeof(struct string_info));    \
+      struct string_info *string_info =                                        \
+          &arch_analysis->strings[arch_analysis->num_strings - 1];             \
+      assert(string_info != NULL);                                             \
+      string_info->size = string_length + 1;                                   \
+      string_info->content = malloc(string_info->size);                        \
+      assert(string_info->content != NULL);                                    \
+      strcpy(string_info->content, string);                                    \
+      strncpy(string_info->original_segment, segment_name, 24);                \
+      strncpy(string_info->original_section, sect->sectname, 24);              \
+      ptrdiff_t relative_offset = string - string_start;                       \
+      string_info->original_offset = sect->offset + relative_offset;           \
+    }                                                                          \
+    string += string_length + 1;                                               \
+  }
+
 void parse_cstring_section(struct arch_analysis *arch_analysis, uint8_t *buffer,
                            struct section_64 *sect, char *segment_name) {
-  char *string_start = (char *)buffer + sect->offset;
-  char *string_end = string_start + sect->size;
-  char *string = string_start;
-  while (string < string_end) {
-    const size_t string_length = strlen(string);
-    if (string_length > 0) {
-      arch_analysis->num_strings++;
-      arch_analysis->strings =
-          realloc(arch_analysis->strings,
-                  arch_analysis->num_strings * sizeof(struct string_info));
-      struct string_info *string_info =
-          &arch_analysis->strings[arch_analysis->num_strings - 1];
-      assert(string_info != NULL);
-
-      // Copy the string content
-      string_info->size = string_length + 1;
-      string_info->content = malloc(string_info->size);
-      assert(string_info->content != NULL);
-      strcpy(string_info->content, string);
-
-      // Copy the segment and section information
-      strncpy(string_info->original_segment, segment_name, 24);
-      strncpy(string_info->original_section, sect->sectname, 24);
-
-      // Set the original offset
-      ptrdiff_t relative_offset = string - string_start;
-      string_info->original_offset = sect->offset + relative_offset;
-    }
-    // The + 1 is to skip the null terminator
-    string += string_length + 1;
-  };
+  PARSE_CSTRING_SECTION(arch_analysis, buffer, sect, segment_name);
 }
 
 void parse_text_segment64(struct arch_analysis *arch_analysis, uint8_t *buffer,
