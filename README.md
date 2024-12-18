@@ -62,7 +62,7 @@ make
    │  • directory_inherit (__TEXT,__cstring)
    │  • % (__TEXT,__const)
    └────────────────
-
+```
 
 ## C API
 
