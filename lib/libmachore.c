@@ -100,11 +100,6 @@ void parse_dylib_command(struct dylib_command *dylib_cmd,
     string += string_length + 1;                                               \
   }
 
-void parse_section64(struct arch_analysis *arch_analysis, uint8_t *buffer,
-                     struct section_64 *sect, char *segment_name) {
-  PARSE_SECTION(arch_analysis, buffer, sect, segment_name);
-}
-
 void parse_text_segment64(struct arch_analysis *arch_analysis, uint8_t *buffer,
                           struct segment_command_64 *seg) {
   struct section_64 *sect = (void *)seg + sizeof(struct segment_command_64);
@@ -112,23 +107,20 @@ void parse_text_segment64(struct arch_analysis *arch_analysis, uint8_t *buffer,
     if (strcmp(sect->sectname, "__cstring") == 0 ||
         strcmp(sect->sectname, "__const") == 0 ||
         strcmp(sect->sectname, "__oslogstring") == 0) {
-      parse_section64(arch_analysis, buffer, sect, "__TEXT");
+      PARSE_SECTION(arch_analysis, buffer, sect, "__TEXT");
     }
     sect++;
   }
-}
-
-void parse_section(struct arch_analysis *arch_analysis, uint8_t *buffer,
-                   struct section *sect, char *segment_name) {
-  PARSE_SECTION(arch_analysis, buffer, sect, segment_name);
 }
 
 void parse_text_segment(struct arch_analysis *arch_analysis, uint8_t *buffer,
                         struct segment_command *seg) {
   struct section *sect = (void *)seg + sizeof(struct segment_command);
   for (uint32_t index = 0; index < seg->nsects; index++) {
-    if (strcmp(sect->sectname, "__cstring") == 0) {
-      parse_section(arch_analysis, buffer, sect, "__TEXT");
+    if (strcmp(sect->sectname, "__cstring") == 0 ||
+        strcmp(sect->sectname, "__const") == 0 ||
+        strcmp(sect->sectname, "__oslogstring") == 0) {
+      PARSE_SECTION(arch_analysis, buffer, sect, "__TEXT");
     }
     sect++;
   }
