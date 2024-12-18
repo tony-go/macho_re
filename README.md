@@ -29,12 +29,10 @@ make
 ```
 
 ```
-❯ ./build/macho_re /bin/ls
-
-📦 Fat Binary
+❯ ./build/macho_re /bin/ls --first-only
+📦 Mach-O Binary
 📂 Path: /bin/ls
-═══════════════════════
-
+══════════════
 🔧 Architecture: x86_64
 📁 File Type: Executable
    ├─ Linked Libraries:
@@ -44,19 +42,27 @@ make
    │   └─ Version: 0.5.0
    │  • /usr/lib/libSystem.B.dylib
    │   └─ Version: 5.71.0
+   ├─ String:
+   │  • @(#)PROGRAM:ls  PROJECT:file_cmds-448.0.3\n (__TEXT,__const)
+   │  • |@$FreeBSD$ (__TEXT,__const)
+   │  ...
+   │  • search (__TEXT,__cstring)
+   │  • delete (__TEXT,__cstring)
+   │  • append (__TEXT,__cstring)
+   │  • add_subdirectory (__TEXT,__cstring)
+   │  • delete_child (__TEXT,__cstring)
+   │  • readattr (__TEXT,__cstring)
+   │  • writeattr (__TEXT,__cstring)
+   │  • readextattr (__TEXT,__cstring)
+   │  • writeextattr (__TEXT,__cstring)
+   │  • readsecurity (__TEXT,__cstring)
+   │  • writesecurity (__TEXT,__cstring)
+   │  • chown (__TEXT,__cstring)
+   │  • file_inherit (__TEXT,__cstring)
+   │  • directory_inherit (__TEXT,__cstring)
+   │  • % (__TEXT,__const)
    └────────────────
 
-🔧 Architecture: ARM64
-📁 File Type: Executable
-   ├─ Linked Libraries:
-   │  • /usr/lib/libutil.dylib
-   │   └─ Version: 0.1.0
-   │  • /usr/lib/libncurses.5.4.dylib
-   │   └─ Version: 0.5.0
-   │  • /usr/lib/libSystem.B.dylib
-   │   └─ Version: 5.71.0
-   └────────────────
-```
 
 ## C API
 
@@ -64,36 +70,7 @@ make
 
 ### Data Structures
 
-```c
-struct dylib_info {
-    char path[LIBMACHORE_DYLIB_PATH_SIZE];     // Path to the dynamic library
-    bool is_path_truncated;                     // True if path was truncated
-    char version[LIBMACHORE_DYLIB_VERSION_SIZE]; // Version string (format: MM.mm.PPPP)
-};
-
-typedef enum
-{
-  FILETYPE_EXEC,
-  FILETYPE_DYLIB,
-  FILETYPE_BUNDLE,
-  FILETYPE_OBJECT,
-  FILETYPE_CORE_DUMP,
-  FILETYPE_NOT_SUPPORTED
-} filetype_t;
-
-struct arch_analysis {
-    char architecture[LIBMACHORE_ARCHITECTURE_SIZE]; // CPU architecture (x86, x86_64, ARM, ARM64)
-    filetype_t filetype;                            // File type (EXEC, DYLIB, BUNDLE, OBJECT, NOT_SUPPORTED)
-    struct dylib_info *dylibs;                      // Array of dynamic libraries
-    size_t num_dylibs;                              // Number of dynamic libraries
-};
-
-struct analysis {
-    struct arch_analysis *arch_analyses;    // Array of architecture analyses
-    size_t num_arch_analyses;               // Number of architectures
-    bool is_fat;                            // True if binary is a fat/universal binary
-};
-```
+Please check `lib/libmachore.h`!
 
 ### Functions
 
