@@ -100,8 +100,9 @@ void parse_dylib_command(struct dylib_command *dylib_cmd,
     string += string_length + 1;                                               \
   }
 
-void parse_cstring_section(struct arch_analysis *arch_analysis, uint8_t *buffer,
-                           struct section_64 *sect, char *segment_name) {
+void parse_cstring_section64(struct arch_analysis *arch_analysis,
+                             uint8_t *buffer, struct section_64 *sect,
+                             char *segment_name) {
   PARSE_CSTRING_SECTION(arch_analysis, buffer, sect, segment_name);
 }
 
@@ -110,7 +111,7 @@ void parse_text_segment64(struct arch_analysis *arch_analysis, uint8_t *buffer,
   struct section_64 *sect = (void *)seg + sizeof(struct segment_command_64);
   for (uint32_t index = 0; index < seg->nsects; index++) {
     if (strcmp(sect->sectname, "__cstring") == 0) {
-      parse_cstring_section(arch_analysis, buffer, sect, "__TEXT");
+      parse_cstring_section64(arch_analysis, buffer, sect, "__TEXT");
     }
     sect++;
   }
