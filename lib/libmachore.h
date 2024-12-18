@@ -29,6 +29,7 @@ struct string_info {
   size_t size;
   uint64_t original_offset;
   char original_section[24];
+  char original_segment[24];
 };
 
 struct arch_analysis {
