@@ -90,13 +90,18 @@ void parse_cstring_section(struct arch_analysis *arch_analysis, uint8_t *buffer,
           &arch_analysis->strings[arch_analysis->num_strings - 1];
       assert(string_info != NULL);
 
+      // Copy the string content
       string_info->size = string_length + 1;
       string_info->content = malloc(string_info->size);
       assert(string_info->content != NULL);
       strcpy(string_info->content, string);
 
+      // Copy the section information
       strncpy(string_info->original_section, sect->sectname, 24);
-      string_info->original_offset = sect->offset + (string - string_start);
+
+      // Set the original offset
+      ptrdiff_t relative_offset = string - string_start;
+      string_info->original_offset = sect->offset + relative_offset;
     }
     // The + 1 is to skip the null terminator
     string += string_length + 1;
