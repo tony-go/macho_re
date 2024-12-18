@@ -1,5 +1,6 @@
 #include "lib/libmachore.h"
 
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -30,12 +31,42 @@ const char *filetype_to_string(filetype_t filetype) {
 void print_arch(const struct arch_analysis *arch_analysis) {
   printf("🔧 Architecture: %s\n", arch_analysis->architecture);
   printf("📁 File Type: %s\n", filetype_to_string(arch_analysis->filetype));
+
   printf("   ├─ Linked Libraries:\n");
   struct dylib_info *dylib_info = arch_analysis->dylibs;
   for (size_t dylib_index = 0; dylib_index < arch_analysis->num_dylibs;
        dylib_index++) {
     printf("   │  • %s\n", dylib_info[dylib_index].path);
     printf("   │   └─ Version: %s\n", dylib_info[dylib_index].version);
+  }
+
+  printf("   ├─ String:\n");
+  struct string_info *string_info = arch_analysis->strings;
+  for (size_t string_index = 0; string_index < arch_analysis->num_strings;
+       string_index++) {
+    const char *content = string_info[string_index].content;
+    size_t length = string_info[string_index].size;
+
+    printf("   │  • ");
+
+    for (size_t i = 0; i < length; i++) {
+      char c = content[i];
+      switch (c) {
+      case '\n':
+        printf("\\n");
+        break;
+      case '\0':
+        // We don't want to print the null terminator
+        break;
+      default:
+        if (isprint(c)) {
+          printf("%c", c);
+        } else {
+          printf("\\x%02x", (unsigned char)c);
+        }
+      }
+    }
+    printf("\n");
   }
   printf("   └────────────────\n");
 }

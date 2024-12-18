@@ -125,3 +125,33 @@ TEST(libmachore, parse_macho_dylib) {
   free(buffer);
   clean_analysis(&analysis);
 }
+
+TEST(libmachore, parse_macho_strings) {
+  struct analysis analysis;
+  create_analysis(&analysis);
+
+  const char *filename = "/bin/ls";
+  uint8_t *buffer = nullptr;
+  size_t buffer_size = 0;
+  read_file_to_buffer(filename, &buffer, &buffer_size);
+
+  parse_macho(&analysis, buffer, buffer_size);
+
+  struct arch_analysis *arch_analysis = &analysis.arch_analyses[0];
+  struct string_info *string_info = &arch_analysis->strings[0];
+  EXPECT_STREQ(string_info->content, "bin/ls");
+  EXPECT_EQ(string_info->size, 7);
+  EXPECT_STREQ(string_info->original_segment, "__TEXT");
+  EXPECT_STREQ(string_info->original_section, "__cstring");
+  EXPECT_TRUE(string_info->original_offset);
+
+  struct string_info *string_info_1 = &arch_analysis->strings[1];
+  EXPECT_STREQ(string_info_1->content, "Unix2003");
+  EXPECT_EQ(string_info_1->size, 9);
+  EXPECT_STREQ(string_info->original_segment, "__TEXT");
+  EXPECT_STREQ(string_info_1->original_section, "__cstring");
+  EXPECT_TRUE(string_info_1->original_offset);
+
+  free(buffer);
+  clean_analysis(&analysis);
+}

@@ -24,11 +24,25 @@ typedef enum {
   FILETYPE_NOT_SUPPORTED
 } filetype_t;
 
+struct string_info {
+  char *content;
+  size_t size;
+  uint64_t original_offset;
+  char original_section[24];
+  char original_segment[24];
+};
+
 struct arch_analysis {
   char architecture[LIBMACHORE_ARCHITECTURE_SIZE];
   filetype_t filetype;
+
+  // Dylibs
   struct dylib_info *dylibs;
   size_t num_dylibs;
+
+  // Strings
+  struct string_info *strings;
+  size_t num_strings;
 };
 
 struct analysis {
