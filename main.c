@@ -3,6 +3,7 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 void print_usage(const char *program_name) {
   printf("Usage: %s <path-to-binary>\n", program_name);
@@ -66,13 +67,19 @@ void print_arch(const struct arch_analysis *arch_analysis) {
         }
       }
     }
+
+    printf(" \033[90m(%s,%s)\033[0m",
+           string_info[string_index].original_segment,
+           string_info[string_index].original_section);
+
     printf("\n");
   }
   printf("   └────────────────\n");
 }
 
-void pretty_print_macho(const struct analysis *analysis, const char *path) {
-  if (analysis->is_fat) {
+void pretty_print_macho(const struct analysis *analysis, const char *path,
+                        bool is_first_only) {
+  if (analysis->is_fat && !is_first_only) {
     printf("📦 Fat Binary\n");
     printf("📂 Path: %s\n", path);
     printf("═══════════════════════\n\n");
@@ -91,12 +98,20 @@ void pretty_print_macho(const struct analysis *analysis, const char *path) {
 }
 
 int main(int argc, char *argv[]) {
-  if (argc != 2) {
+  if (argc < 2) {
     print_usage(argv[0]);
     return 1;
   }
 
   const char *filename = argv[1];
+
+  bool is_first_only = false;
+  if (argc == 3) {
+    const char *option = argv[2];
+    if (strcmp(option, "--first-only") == 0) {
+      is_first_only = true;
+    }
+  }
 
   // Read the binary file
   FILE *file = fopen(filename, "rb");
@@ -130,7 +145,7 @@ int main(int argc, char *argv[]) {
   create_analysis(&analysis);
 
   parse_macho(&analysis, buffer, size);
-  pretty_print_macho(&analysis, filename);
+  pretty_print_macho(&analysis, filename, is_first_only);
 
   free(buffer);
   clean_analysis(&analysis);
