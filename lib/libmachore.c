@@ -150,6 +150,29 @@ void parse_data_segment(struct arch_analysis *arch_analysis, uint8_t *buffer,
   }
 }
 
+void parse_data_const_segment64(struct arch_analysis *arch_analysis,
+                                uint8_t *buffer,
+                                struct segment_command_64 *seg) {
+  struct section_64 *sect = (void *)seg + sizeof(struct segment_command_64);
+  for (uint32_t index = 0; index < seg->nsects; index++) {
+    if (strcmp(sect->sectname, "__const") == 0) {
+      PARSE_SECTION(arch_analysis, buffer, sect, "__DATA_CONST");
+    }
+    sect++;
+  }
+}
+
+void parse_data_const_segment(struct arch_analysis *arch_analysis,
+                              uint8_t *buffer, struct segment_command *seg) {
+  struct section *sect = (void *)seg + sizeof(struct segment_command);
+  for (uint32_t index = 0; index < seg->nsects; index++) {
+    if (strcmp(sect->sectname, "__const") == 0) {
+      PARSE_SECTION(arch_analysis, buffer, sect, "__DATA_CONST");
+    }
+    sect++;
+  }
+}
+
 void parse_load_commands(struct arch_analysis *arch_analysis, uint8_t *buffer,
                          uint32_t ncmds) {
   struct mach_header *header = (struct mach_header *)buffer;
@@ -184,6 +207,8 @@ void parse_load_commands(struct arch_analysis *arch_analysis, uint8_t *buffer,
         parse_text_segment64(arch_analysis, buffer, seg);
       } else if (strcmp(seg->segname, "__DATA") == 0) {
         parse_data_segment64(arch_analysis, buffer, seg);
+      } else if (strcmp(seg->segname, "__DATA_CONST") == 0) {
+        parse_data_const_segment64(arch_analysis, buffer, seg);
       }
     }
     case LC_SEGMENT: {
@@ -192,6 +217,8 @@ void parse_load_commands(struct arch_analysis *arch_analysis, uint8_t *buffer,
         parse_text_segment(arch_analysis, buffer, seg);
       } else if (strcmp(seg->segname, "__DATA") == 0) {
         parse_data_segment(arch_analysis, buffer, seg);
+      } else if (strcmp(seg->segname, "__DATA_CONST") == 0) {
+        parse_data_const_segment(arch_analysis, buffer, seg);
       }
     }
     default:
