@@ -12,20 +12,20 @@ void print_usage(const char *program_name) {
 
 const char *filetype_to_string(filetype_t filetype) {
   switch (filetype) {
-  case FILETYPE_EXEC:
+  case LIBMACHORE_FILETYPE_EXECUTE:
     return "Executable";
-  case FILETYPE_DYLIB:
+  case LIBMACHORE_FILETYPE_DYLIB:
     return "Dynamic Library";
-  case FILETYPE_BUNDLE:
+  case LIBMACHORE_FILETYPE_BUNDLE:
     return "Bundle";
-  case FILETYPE_OBJECT:
+  case LIBMACHORE_FILETYPE_OBJECT:
     return "Object";
-  case FILETYPE_CORE_DUMP:
+  case LIBMACHORE_FILETYPE_CORE:
     return "Core Dump";
-  case FILETYPE_NOT_SUPPORTED:
+  case LIBMACHORE_FILETYPE_NOT_SUPPORTED:
     return "Not Supported";
   default:
-    return "Unknown";
+    return "Not Supported";
   }
 }
 

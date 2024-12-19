@@ -251,18 +251,30 @@ void copy_cpu_arch(uint32_t cpu_type, char *output_str,
 
 filetype_t get_file_type(uint32_t filetype) {
   switch (filetype) {
-  case MH_DYLIB:
-    return FILETYPE_DYLIB;
-  case MH_EXECUTE:
-    return FILETYPE_EXEC;
-  case MH_BUNDLE:
-    return FILETYPE_BUNDLE;
-  case MH_CORE:
-    return FILETYPE_CORE_DUMP;
   case MH_OBJECT:
-    return FILETYPE_OBJECT;
+    return LIBMACHORE_FILETYPE_OBJECT;
+  case MH_EXECUTE:
+    return LIBMACHORE_FILETYPE_EXECUTE;
+  case MH_FVMLIB:
+    return LIBMACHORE_FILETYPE_FVMLIB;
+  case MH_CORE:
+    return LIBMACHORE_FILETYPE_CORE;
+  case MH_PRELOAD:
+    return LIBMACHORE_FILETYPE_PRELOAD;
+  case MH_DYLIB:
+    return LIBMACHORE_FILETYPE_DYLIB;
+  case MH_DYLINKER:
+    return LIBMACHORE_FILETYPE_DYLINKER;
+  case MH_BUNDLE:
+    return LIBMACHORE_FILETYPE_BUNDLE;
+  case MH_DYLIB_STUB:
+    return LIBMACHORE_FILETYPE_DYLIB_STUB;
+  case MH_DSYM:
+    return LIBMACHORE_FILETYPE_DSYM;
+  case MH_KEXT_BUNDLE:
+    return LIBMACHORE_FILETYPE_KEXT_BUNDLE;
   default:
-    return FILETYPE_NOT_SUPPORTED;
+    return LIBMACHORE_FILETYPE_NOT_SUPPORTED;
   }
 }
 
