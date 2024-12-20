@@ -4,6 +4,7 @@ extern "C" {
 
 #include <gtest/gtest.h>
 
+#include <filesystem>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -60,7 +61,7 @@ TEST(libmachore, clean_analysis) {
   EXPECT_EQ(analysis.is_fat, false);
 }
 
-TEST(libmachore, parse_macho) {
+TEST(libmachore, parse_macho_fat) {
   struct analysis analysis;
   create_analysis(&analysis);
 
@@ -91,9 +92,61 @@ TEST(libmachore, parse_macho_arch) {
   struct arch_analysis *arch_analysis = &analysis.arch_analyses[0];
 
   EXPECT_STREQ(arch_analysis->architecture, "x86_64");
-  EXPECT_EQ(arch_analysis->filetype, FILETYPE_EXEC);
+  EXPECT_EQ(arch_analysis->filetype, LIBMACHORE_FILETYPE_EXECUTE);
   EXPECT_EQ(arch_analysis->num_dylibs, 3);
+  // TODO: add string
 
+  free(buffer);
+  clean_analysis(&analysis);
+}
+
+TEST(libmachore, parse_macho_filetypes) {
+  struct analysis analysis;
+  uint8_t *buffer = nullptr;
+  size_t buffer_size = 0;
+
+  // Test MH_EXECUTE
+  create_analysis(&analysis);
+  read_file_to_buffer("/bin/ls", &buffer, &buffer_size);
+  parse_macho(&analysis, buffer, buffer_size);
+  EXPECT_EQ(analysis.arch_analyses[0].filetype, LIBMACHORE_FILETYPE_EXECUTE);
+  free(buffer);
+  clean_analysis(&analysis);
+
+  // Test MH_DYLIB
+  create_analysis(&analysis);
+  read_file_to_buffer("/usr/lib/libgmalloc.dylib", &buffer, &buffer_size);
+  parse_macho(&analysis, buffer, buffer_size);
+  EXPECT_EQ(analysis.arch_analyses[0].filetype, LIBMACHORE_FILETYPE_DYLIB);
+  free(buffer);
+  clean_analysis(&analysis);
+
+  // Test MH_BUNDLE
+  create_analysis(&analysis);
+  read_file_to_buffer(
+      "/System/Library/CoreServices/SecurityAgentPlugins/DiskUnlock.bundle/"
+      "Contents/MacOS/DiskUnlock",
+      &buffer, &buffer_size);
+  parse_macho(&analysis, buffer, buffer_size);
+  EXPECT_EQ(analysis.arch_analyses[0].filetype, LIBMACHORE_FILETYPE_BUNDLE);
+  free(buffer);
+  clean_analysis(&analysis);
+
+  // Test MH_DYLINKER
+  create_analysis(&analysis);
+  read_file_to_buffer("/usr/lib/dyld", &buffer, &buffer_size);
+  parse_macho(&analysis, buffer, buffer_size);
+  EXPECT_EQ(analysis.arch_analyses[0].filetype, LIBMACHORE_FILETYPE_DYLINKER);
+  free(buffer);
+  clean_analysis(&analysis);
+
+  // Test MH_OBJECT
+  auto object_binary_path =
+      std::filesystem::current_path() / "fixtures" / "test.o";
+  create_analysis(&analysis);
+  read_file_to_buffer(object_binary_path.c_str(), &buffer, &buffer_size);
+  parse_macho(&analysis, buffer, buffer_size);
+  EXPECT_EQ(analysis.arch_analyses[0].filetype, LIBMACHORE_FILETYPE_OBJECT);
   free(buffer);
   clean_analysis(&analysis);
 }
