@@ -130,6 +130,14 @@ TEST(libmachore, parse_macho_filetypes) {
   EXPECT_EQ(analysis.arch_analyses[0].filetype, LIBMACHORE_FILETYPE_BUNDLE);
   free(buffer);
   clean_analysis(&analysis);
+
+  // Test MH_DYLINKER
+  create_analysis(&analysis);
+  read_file_to_buffer("/usr/lib/dyld", &buffer, &buffer_size);
+  parse_macho(&analysis, buffer, buffer_size);
+  EXPECT_EQ(analysis.arch_analyses[0].filetype, LIBMACHORE_FILETYPE_DYLINKER);
+  free(buffer);
+  clean_analysis(&analysis);
 }
 
 TEST(libmachore, parse_macho_dylib) {
