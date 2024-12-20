@@ -8,7 +8,7 @@ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 # Set C and C++ standard
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_STANDARD 11) # Needed for googletest 
+set(CMAKE_CXX_STANDARD 17) # Needed for googletest
 set(CMAKE_CXX_STANDARD_REQUIRED ON) # Needed for googletest
 
 # Add libmachore library

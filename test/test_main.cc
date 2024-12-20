@@ -4,6 +4,7 @@ extern "C" {
 
 #include <gtest/gtest.h>
 
+#include <filesystem>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -136,6 +137,16 @@ TEST(libmachore, parse_macho_filetypes) {
   read_file_to_buffer("/usr/lib/dyld", &buffer, &buffer_size);
   parse_macho(&analysis, buffer, buffer_size);
   EXPECT_EQ(analysis.arch_analyses[0].filetype, LIBMACHORE_FILETYPE_DYLINKER);
+  free(buffer);
+  clean_analysis(&analysis);
+
+  // Test MH_OBJECT
+  auto object_binary_path =
+      std::filesystem::current_path() / "fixtures" / "test.o";
+  create_analysis(&analysis);
+  read_file_to_buffer(object_binary_path.c_str(), &buffer, &buffer_size);
+  parse_macho(&analysis, buffer, buffer_size);
+  EXPECT_EQ(analysis.arch_analyses[0].filetype, LIBMACHORE_FILETYPE_OBJECT);
   free(buffer);
   clean_analysis(&analysis);
 }
