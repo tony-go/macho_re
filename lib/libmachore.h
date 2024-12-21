@@ -42,6 +42,14 @@ struct arch_analysis {
   char architecture[LIBMACHORE_ARCHITECTURE_SIZE];
   filetype_t filetype;
 
+  // Flags
+  bool no_undefined_refs;
+  bool dyld_compatible;
+  bool defines_weak_symbols;
+  bool uses_weak_symbols;
+  bool allows_stack_execution;
+  bool enforce_no_heap_exec;
+
   // Dylibs
   struct dylib_info *dylibs;
   size_t num_dylibs;

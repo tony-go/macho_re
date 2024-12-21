@@ -37,6 +37,20 @@ void print_arch(const struct arch_analysis *arch_analysis) {
   printf("🔧 Architecture: %s\n", arch_analysis->architecture);
   printf("📁 File Type: %s\n", filetype_to_string(arch_analysis->filetype));
 
+  printf("   ├─ Flags :\n");
+  printf("   │  • No Undefined References: %s\n",
+         arch_analysis->no_undefined_refs ? "Yes" : "No");
+  printf("   │  • Dyld Compatible: %s\n",
+         arch_analysis->dyld_compatible ? "Yes" : "No");
+  printf("   │  • Defines Weak Symbols: %s\n",
+         arch_analysis->defines_weak_symbols ? "Yes" : "No");
+  printf("   │  • Uses Weak Symbols: %s\n",
+         arch_analysis->uses_weak_symbols ? "Yes" : "No");
+  printf("   │  • Allows Stack Execution: %s\n",
+         arch_analysis->allows_stack_execution ? "Yes" : "No");
+  printf("   │  • Enforce No Heap Execution: %s\n",
+         arch_analysis->enforce_no_heap_exec ? "Yes" : "No");
+
   printf("   ├─ Linked Libraries:\n");
   struct dylib_info *dylib_info = arch_analysis->dylibs;
   for (size_t dylib_index = 0; dylib_index < arch_analysis->num_dylibs;
