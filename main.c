@@ -42,6 +42,10 @@ void print_arch(const struct arch_analysis *arch_analysis) {
          arch_analysis->no_undefined_refs ? "Yes" : "No");
   printf("   │  • Dyld Compatible: %s\n",
          arch_analysis->dyld_compatible ? "Yes" : "No");
+  printf("   │  • Defines Weak Symbols: %s\n",
+         arch_analysis->defines_weak_symbols ? "Yes" : "No");
+  printf("   │  • Uses Weak Symbols: %s\n",
+         arch_analysis->uses_weak_symbols ? "Yes" : "No");
 
   printf("   ├─ Linked Libraries:\n");
   struct dylib_info *dylib_info = arch_analysis->dylibs;

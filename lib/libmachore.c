@@ -26,6 +26,8 @@ bool is_fat_header(uint8_t *buffer) {
 void clean_arch_analysis(struct arch_analysis *arch_analysis) {
   arch_analysis->no_undefined_refs = false;
   arch_analysis->dyld_compatible = false;
+  arch_analysis->defines_weak_symbols = false;
+  arch_analysis->uses_weak_symbols = false;
 
   free(arch_analysis->dylibs);
   arch_analysis->num_dylibs = 0;
@@ -284,6 +286,8 @@ filetype_t get_file_type(uint32_t filetype) {
 void parse_flags(uint32_t flags, struct arch_analysis *arch_analysis) {
   arch_analysis->no_undefined_refs = flags & MH_NOUNDEFS;
   arch_analysis->dyld_compatible = flags & MH_DYLDLINK;
+  arch_analysis->defines_weak_symbols = flags & MH_WEAK_DEFINES;
+  arch_analysis->uses_weak_symbols = flags & MH_BINDS_TO_WEAK;
 }
 
 void parse_macho_arch(struct analysis *analysis, int arch_index,

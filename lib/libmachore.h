@@ -45,6 +45,8 @@ struct arch_analysis {
   // Flags
   bool no_undefined_refs;
   bool dyld_compatible;
+  bool defines_weak_symbols;
+  bool uses_weak_symbols;
 
   // Dylibs
   struct dylib_info *dylibs;

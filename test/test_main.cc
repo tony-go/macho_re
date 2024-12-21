@@ -226,6 +226,8 @@ TEST(libmachore, parse_macho_flags) {
   struct arch_analysis *arch_analysis = &analysis.arch_analyses[0];
   EXPECT_TRUE(arch_analysis->no_undefined_refs);
   EXPECT_TRUE(arch_analysis->dyld_compatible);
+  EXPECT_FALSE(arch_analysis->defines_weak_symbols);
+  EXPECT_FALSE(arch_analysis->uses_weak_symbols);
 
   free(buffer);
   clean_analysis(&analysis);
