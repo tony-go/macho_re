@@ -24,6 +24,9 @@ bool is_fat_header(uint8_t *buffer) {
 }
 
 void clean_arch_analysis(struct arch_analysis *arch_analysis) {
+  arch_analysis->no_undefined_refs = false;
+  arch_analysis->dyld_compatible = false;
+
   free(arch_analysis->dylibs);
   arch_analysis->num_dylibs = 0;
 
@@ -278,6 +281,11 @@ filetype_t get_file_type(uint32_t filetype) {
   }
 }
 
+void parse_flags(uint32_t flags, struct arch_analysis *arch_analysis) {
+  arch_analysis->no_undefined_refs = flags & MH_NOUNDEFS;
+  arch_analysis->dyld_compatible = flags & MH_DYLDLINK;
+}
+
 void parse_macho_arch(struct analysis *analysis, int arch_index,
                       uint8_t *buffer) {
   // 1. Allocate memory for the new arch_analysis struct
@@ -307,6 +315,9 @@ void parse_macho_arch(struct analysis *analysis, int arch_index,
   // 6. Parse the load commands
   uint32_t ncmds = header->ncmds;
   parse_load_commands(arch_analysis, buffer, ncmds);
+
+  // 7. Parse flags
+  parse_flags(header->flags, arch_analysis);
 }
 
 /*

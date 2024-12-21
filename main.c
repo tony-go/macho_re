@@ -37,6 +37,12 @@ void print_arch(const struct arch_analysis *arch_analysis) {
   printf("🔧 Architecture: %s\n", arch_analysis->architecture);
   printf("📁 File Type: %s\n", filetype_to_string(arch_analysis->filetype));
 
+  printf("   ├─ Flags :\n");
+  printf("   │  • No Undefined References: %s\n",
+         arch_analysis->no_undefined_refs ? "Yes" : "No");
+  printf("   │  • Dyld Compatible: %s\n",
+         arch_analysis->dyld_compatible ? "Yes" : "No");
+
   printf("   ├─ Linked Libraries:\n");
   struct dylib_info *dylib_info = arch_analysis->dylibs;
   for (size_t dylib_index = 0; dylib_index < arch_analysis->num_dylibs;
