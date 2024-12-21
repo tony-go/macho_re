@@ -30,6 +30,7 @@ void clean_arch_analysis(struct arch_analysis *arch_analysis) {
   arch_analysis->uses_weak_symbols = false;
   arch_analysis->allows_stack_execution = false;
   arch_analysis->enforce_no_heap_exec = false;
+  arch_analysis->is_signed = false;
 
   free(arch_analysis->dylibs);
   arch_analysis->num_dylibs = 0;
@@ -227,6 +228,9 @@ void parse_load_commands(struct arch_analysis *arch_analysis, uint8_t *buffer,
       } else if (strcmp(seg->segname, "__DATA_CONST") == 0) {
         parse_data_const_segment(arch_analysis, buffer, seg);
       }
+    }
+    case LC_CODE_SIGNATURE: {
+      arch_analysis->is_signed = true;
     }
     default:
       break;

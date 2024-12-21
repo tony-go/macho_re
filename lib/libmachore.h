@@ -49,6 +49,7 @@ struct arch_analysis {
   bool uses_weak_symbols;
   bool allows_stack_execution;
   bool enforce_no_heap_exec;
+  bool is_signed;
 
   // Dylibs
   struct dylib_info *dylibs;
