@@ -46,6 +46,10 @@ void print_arch(const struct arch_analysis *arch_analysis) {
          arch_analysis->defines_weak_symbols ? "Yes" : "No");
   printf("   │  • Uses Weak Symbols: %s\n",
          arch_analysis->uses_weak_symbols ? "Yes" : "No");
+  printf("   │  • Allows Stack Execution: %s\n",
+         arch_analysis->allows_stack_execution ? "Yes" : "No");
+  printf("   │  • Enforce No Heap Execution: %s\n",
+         arch_analysis->enforce_no_heap_exec ? "Yes" : "No");
 
   printf("   ├─ Linked Libraries:\n");
   struct dylib_info *dylib_info = arch_analysis->dylibs;

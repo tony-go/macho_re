@@ -228,6 +228,8 @@ TEST(libmachore, parse_macho_flags) {
   EXPECT_TRUE(arch_analysis->dyld_compatible);
   EXPECT_FALSE(arch_analysis->defines_weak_symbols);
   EXPECT_FALSE(arch_analysis->uses_weak_symbols);
+  EXPECT_FALSE(arch_analysis->allows_stack_execution);
+  EXPECT_FALSE(arch_analysis->enforce_no_heap_exec);
 
   free(buffer);
   clean_analysis(&analysis);
