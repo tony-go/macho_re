@@ -38,6 +38,10 @@ struct string_info {
   char original_segment[24];
 };
 
+struct codesign_info {
+  char *signing_id;
+};
+
 struct arch_analysis {
   char architecture[LIBMACHORE_ARCHITECTURE_SIZE];
   filetype_t filetype;
@@ -58,6 +62,9 @@ struct arch_analysis {
   // Strings
   struct string_info *strings;
   size_t num_strings;
+
+  // Codesign info
+  struct codesign_info *codesign_info;
 };
 
 struct analysis {

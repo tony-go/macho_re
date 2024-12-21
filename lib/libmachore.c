@@ -32,11 +32,16 @@ void clean_arch_analysis(struct arch_analysis *arch_analysis) {
   arch_analysis->enforce_no_heap_exec = false;
   arch_analysis->is_signed = false;
 
+  // TODO: we should free the memory of the dylibs, strings
+  // and codesign_info by iterating over the arrays and freeing
+  // each element.
   free(arch_analysis->dylibs);
   arch_analysis->num_dylibs = 0;
 
   free(arch_analysis->strings);
   arch_analysis->num_strings = 0;
+
+  free(arch_analysis->codesign_info);
 }
 
 // The version is a 32-bit integer in the format 0xMMmmPPPP, where MM is the
@@ -181,6 +186,12 @@ void parse_data_const_segment(struct arch_analysis *arch_analysis,
   }
 }
 
+void parse_codesign_info(struct arch_analysis *arch_analysis, uint8_t *buffer,
+                         struct linkedit_data_command *linkedit_data_cmd) {
+  arch_analysis->codesign_info = malloc(sizeof(struct codesign_info));
+  struct codesign_info *codesign_info = arch_analysis->codesign_info;
+}
+
 void parse_load_commands(struct arch_analysis *arch_analysis, uint8_t *buffer,
                          uint32_t ncmds) {
   struct mach_header *header = (struct mach_header *)buffer;
@@ -231,6 +242,9 @@ void parse_load_commands(struct arch_analysis *arch_analysis, uint8_t *buffer,
     }
     case LC_CODE_SIGNATURE: {
       arch_analysis->is_signed = true;
+      struct linkedit_data_command *linkedit_data_cmd =
+          (struct linkedit_data_command *)lc;
+      parse_codesign_info(arch_analysis, buffer, linkedit_data_cmd);
     }
     default:
       break;
