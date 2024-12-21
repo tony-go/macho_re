@@ -22,6 +22,10 @@ const char *filetype_to_string(filetype_t filetype) {
     return "Object";
   case LIBMACHORE_FILETYPE_CORE:
     return "Core Dump";
+  case LIBMACHORE_FILETYPE_DYLINKER:
+    return "Dynamic Linker";
+  case LIBMACHORE_FILETYPE_DSYM:
+    return "Debug Symbols";
   case LIBMACHORE_FILETYPE_NOT_SUPPORTED:
     return "Not Supported";
   default:

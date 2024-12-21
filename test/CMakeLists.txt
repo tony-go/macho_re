@@ -1,6 +1,6 @@
 add_executable(macho_re_test test_main.cc)
 
-file(COPY ${CMAKE_SOURCE_DIR}/test/fixtures/test.o
+file(COPY ${CMAKE_SOURCE_DIR}/test/fixtures/
      DESTINATION ${CMAKE_BINARY_DIR}/test/fixtures)
 
 target_link_libraries(macho_re_test

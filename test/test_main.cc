@@ -149,6 +149,16 @@ TEST(libmachore, parse_macho_filetypes) {
   EXPECT_EQ(analysis.arch_analyses[0].filetype, LIBMACHORE_FILETYPE_OBJECT);
   free(buffer);
   clean_analysis(&analysis);
+
+  // TEST MH_DSYM
+  auto dsym_path = std::filesystem::current_path() / "fixtures" / "crash.dSYM" /
+                   "Contents" / "Resources" / "DWARF" / "crash";
+  create_analysis(&analysis);
+  read_file_to_buffer(dsym_path.c_str(), &buffer, &buffer_size);
+  parse_macho(&analysis, buffer, buffer_size);
+  EXPECT_EQ(analysis.arch_analyses[0].filetype, LIBMACHORE_FILETYPE_DSYM);
+  free(buffer);
+  clean_analysis(&analysis);
 }
 
 TEST(libmachore, parse_macho_dylib) {
