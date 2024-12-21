@@ -230,6 +230,7 @@ TEST(libmachore, parse_macho_flags) {
   EXPECT_FALSE(arch_analysis->uses_weak_symbols);
   EXPECT_FALSE(arch_analysis->allows_stack_execution);
   EXPECT_FALSE(arch_analysis->enforce_no_heap_exec);
+  EXPECT_TRUE(arch_analysis->is_signed);
 
   free(buffer);
   clean_analysis(&analysis);
