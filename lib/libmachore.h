@@ -39,7 +39,7 @@ struct string_info {
 };
 
 struct codesign_info {
-  char *signing_id;
+  bool is_library_validation_disabled;
 };
 
 struct arch_analysis {
