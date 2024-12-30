@@ -198,6 +198,12 @@ void parse_entitlements(char *entitlements,
   }
 }
 
+void parse_codesign_flags(uint32_t flags, struct codesign_info *codesign_info) {
+  if (flags & CS_RUNTIME) {
+    codesign_info->has_hardened_runtime = true;
+  }
+}
+
 void parse_codesign_info(struct arch_analysis *arch_analysis, uint8_t *buffer,
                          struct linkedit_data_command *linkedit_data_cmd) {
   // Allocate memory for the codesign_info
@@ -221,7 +227,9 @@ void parse_codesign_info(struct arch_analysis *arch_analysis, uint8_t *buffer,
         should_swap ? OSSwapInt32(blob_index->offset) : blob_index->offset;
     switch (type) {
     case CSSLOT_CODEDIRECTORY: {
-      // TODO: see what we could extract from the code directory
+      CS_CodeDirectory_shim *code_directory =
+          (CS_CodeDirectory_shim *)(code_slot + offset);
+      parse_codesign_flags(code_directory->flags, codesign_info);
       break;
     }
     case CSSLOT_REQUIREMENTS:

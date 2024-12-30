@@ -58,6 +58,9 @@ void print_arch(const struct arch_analysis *arch_analysis) {
   if (arch_analysis->codesign_info->is_dylib_env_var_allowed) {
     printf("   │  •  Dylib Environment Variable allowed: Yes \n");
   }
+  if (arch_analysis->codesign_info->has_hardened_runtime) {
+    printf("   │  • Hardened Runtime: Yes \n");
+  }
 
   printf("   ├─ Linked Libraries:\n");
   struct dylib_info *dylib_info = arch_analysis->dylibs;
