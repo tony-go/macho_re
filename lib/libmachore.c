@@ -1,3 +1,4 @@
+#include <libkern/OSByteOrder.h>
 #include <mach-o/dyld.h>
 #include <mach-o/fat.h>
 #include <mach-o/loader.h>
@@ -7,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "cs_blobs_shim.h"
 #include "libmachore.h"
 
 /*
@@ -32,11 +34,16 @@ void clean_arch_analysis(struct arch_analysis *arch_analysis) {
   arch_analysis->enforce_no_heap_exec = false;
   arch_analysis->is_signed = false;
 
+  // TODO: we should free the memory of the dylibs, strings
+  // and codesign_info by iterating over the arrays and freeing
+  // each element.
   free(arch_analysis->dylibs);
   arch_analysis->num_dylibs = 0;
 
   free(arch_analysis->strings);
   arch_analysis->num_strings = 0;
+
+  free(arch_analysis->codesign_info);
 }
 
 // The version is a 32-bit integer in the format 0xMMmmPPPP, where MM is the
@@ -181,6 +188,67 @@ void parse_data_const_segment(struct arch_analysis *arch_analysis,
   }
 }
 
+void parse_entitlements(char *entitlements,
+                        struct arch_analysis *arch_analysis) {
+  if (strstr(entitlements,
+             "<key>com.apple.security.cs.disable-library-validation</key>") !=
+          NULL &&
+      strstr(entitlements, "<true/>") != NULL) {
+    arch_analysis->codesign_info->is_library_validation_disabled = true;
+  }
+}
+
+void parse_codesign_info(struct arch_analysis *arch_analysis, uint8_t *buffer,
+                         struct linkedit_data_command *linkedit_data_cmd) {
+  // Allocate memory for the codesign_info
+  // and get the pointer to the codesign_info
+  arch_analysis->codesign_info = malloc(sizeof(struct codesign_info));
+  struct codesign_info *codesign_info = arch_analysis->codesign_info;
+
+  // Get the pointer to the code slot and cast it to a SuperBlob
+  uint8_t *code_slot = buffer + linkedit_data_cmd->dataoff;
+  CS_SuperBlob_shim *super_blob = (CS_SuperBlob_shim *)code_slot;
+
+  bool should_swap = super_blob->magic != CSMAGIC_EMBEDDED_SIGNATURE;
+  uint32_t count =
+      should_swap ? OSSwapInt32(super_blob->count) : super_blob->count;
+
+  for (uint16_t index = 0; index < count; index++) {
+    CS_BlobIndex_shim *blob_index = &super_blob->index[index];
+    uint32_t type =
+        should_swap ? OSSwapInt32(blob_index->type) : blob_index->type;
+    uint32_t offset =
+        should_swap ? OSSwapInt32(blob_index->offset) : blob_index->offset;
+    switch (type) {
+    case CSSLOT_CODEDIRECTORY: {
+      // TODO: see what we could extract from the code directory
+      break;
+    }
+    case CSSLOT_REQUIREMENTS:
+      // TODO: see what we could extract from the requirements
+      break;
+    case CSSLOT_ENTITLEMENTS: {
+      CS_GenericBlob_shim *entitlements_blob =
+          (CS_GenericBlob_shim *)(code_slot + offset);
+
+      uint32_t magic = should_swap ? OSSwapInt32(entitlements_blob->magic)
+                                   : entitlements_blob->magic;
+      if (magic != CSMAGIC_EMBEDDED_ENTITLEMENTS) {
+        printf("Invalid magic number for entitlements\n");
+        break;
+      }
+      // read only the size of the blob
+      uint32_t length = should_swap ? OSSwapInt32(entitlements_blob->length)
+                                    : entitlements_blob->length;
+      uint32_t xml_length = length - sizeof(CS_GenericBlob_shim);
+      char *ent = strndup((char *)entitlements_blob->data, xml_length);
+      parse_entitlements(ent, arch_analysis);
+      break;
+    }
+    }
+  }
+}
+
 void parse_load_commands(struct arch_analysis *arch_analysis, uint8_t *buffer,
                          uint32_t ncmds) {
   struct mach_header *header = (struct mach_header *)buffer;
@@ -218,6 +286,7 @@ void parse_load_commands(struct arch_analysis *arch_analysis, uint8_t *buffer,
       } else if (strcmp(seg->segname, "__DATA_CONST") == 0) {
         parse_data_const_segment64(arch_analysis, buffer, seg);
       }
+      break;
     }
     case LC_SEGMENT: {
       struct segment_command *seg = (struct segment_command *)lc;
@@ -228,9 +297,14 @@ void parse_load_commands(struct arch_analysis *arch_analysis, uint8_t *buffer,
       } else if (strcmp(seg->segname, "__DATA_CONST") == 0) {
         parse_data_const_segment(arch_analysis, buffer, seg);
       }
+      break;
     }
     case LC_CODE_SIGNATURE: {
       arch_analysis->is_signed = true;
+      struct linkedit_data_command *linkedit_data_cmd =
+          (struct linkedit_data_command *)lc;
+      parse_codesign_info(arch_analysis, buffer, linkedit_data_cmd);
+      break;
     }
     default:
       break;

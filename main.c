@@ -50,6 +50,11 @@ void print_arch(const struct arch_analysis *arch_analysis) {
          arch_analysis->allows_stack_execution ? "Yes" : "No");
   printf("   │  • Enforce No Heap Execution: %s\n",
          arch_analysis->enforce_no_heap_exec ? "Yes" : "No");
+  
+  printf("   ├─ Signed: %s\n", arch_analysis->is_signed ? "Yes" : "No");
+  if (arch_analysis->codesign_info->is_library_validation_disabled) {
+    printf("   │  • Library Validation Disabled: Yes \n");
+  }
 
   printf("   ├─ Linked Libraries:\n");
   struct dylib_info *dylib_info = arch_analysis->dylibs;
@@ -61,7 +66,8 @@ void print_arch(const struct arch_analysis *arch_analysis) {
 
   printf("   ├─ String:\n");
   struct string_info *string_info = arch_analysis->strings;
-  for (size_t string_index = 0; string_index < arch_analysis->num_strings;
+  // NOTE: We only print the first 20 strings
+  for (size_t string_index = 0; string_index < 20;
        string_index++) {
     const char *content = string_info[string_index].content;
     size_t length = string_info[string_index].size;
