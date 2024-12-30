@@ -40,6 +40,7 @@ struct string_info {
 
 struct codesign_info {
   bool is_library_validation_disabled;
+  bool is_dylib_env_var_allowed;
 };
 
 struct arch_analysis {
