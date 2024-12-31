@@ -29,38 +29,54 @@ make
 ```
 
 ```
-❯ ./build/macho_re /bin/ls --first-only
+❯ ./build/macho_re /Applications/Firefox.app/Contents/MacOS/firefox --first-only
 📦 Mach-O Binary
-📂 Path: /bin/ls
+📂 Path: /Applications/Firefox.app/Contents/MacOS/firefox
 ══════════════
 🔧 Architecture: x86_64
 📁 File Type: Executable
+   ├─ Binary Flags:
+   │  • No Undefined References: Yes
+   │  • Dyld Compatible: Yes
+   │  • Defines Weak Symbols: No
+   │  • Uses Weak Symbols: Yes
+   │  • Allows Stack Execution: No
+   │  • Enforce No Heap Execution: No
+   ├─ Security Flags:
+   │  • Is Signed: Yes
+   │  • Library Validation Disabled: Yes
+   │  • Dylib Environment Variable allowed: No
+   │  • Hardened Runtime: Yes
    ├─ Linked Libraries:
-   │  • /usr/lib/libutil.dylib
+   │  • @rpath/libmozglue.dylib
    │   └─ Version: 0.1.0
-   │  • /usr/lib/libncurses.5.4.dylib
-   │   └─ Version: 0.5.0
+   │  • /System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation
+   │   └─ Version: 9.116.0
+   │  • /usr/lib/libc++.1.dylib
+   │   └─ Version: 6.164.0
    │  • /usr/lib/libSystem.B.dylib
-   │   └─ Version: 5.71.0
+   │   └─ Version: 5.65.2
    ├─ String:
-   │  • @(#)PROGRAM:ls  PROJECT:file_cmds-448.0.3\n (__TEXT,__const)
-   │  • |@$FreeBSD$ (__TEXT,__const)
-   │  ...
-   │  • search (__TEXT,__cstring)
-   │  • delete (__TEXT,__cstring)
-   │  • append (__TEXT,__cstring)
-   │  • add_subdirectory (__TEXT,__cstring)
-   │  • delete_child (__TEXT,__cstring)
-   │  • readattr (__TEXT,__cstring)
-   │  • writeattr (__TEXT,__cstring)
-   │  • readextattr (__TEXT,__cstring)
-   │  • writeextattr (__TEXT,__cstring)
-   │  • readsecurity (__TEXT,__cstring)
-   │  • writesecurity (__TEXT,__cstring)
-   │  • chown (__TEXT,__cstring)
-   │  • file_inherit (__TEXT,__cstring)
-   │  • directory_inherit (__TEXT,__cstring)
-   │  • % (__TEXT,__const)
+   │  • nsBrowserApp main (__TEXT,__cstring)
+   │  • silentmode (__TEXT,__cstring)
+   │  • MOZ_APP_SILENT_START=1 (__TEXT,__cstring)
+   │  • MOZ_APP_NO_DOCK=1 (__TEXT,__cstring)
+   │  • /dev/null (__TEXT,__cstring)
+   │  • Couldn't find the application directory.\n (__TEXT,__cstring)
+   │  • Couldn't load XPCOM.\n (__TEXT,__cstring)
+   │  • MOZ_RELEASE_ASSERT(is<N>()) (__TEXT,__cstring)
+   │  • XUL_APP_FILE (__TEXT,__cstring)
+   │  • app (__TEXT,__cstring)
+   │  • Incorrect number of arguments passed to -app (__TEXT,__cstring)
+   │  • XUL_APP_FILE=%s (__TEXT,__cstring)
+   │  • Couldn't set %s.\n (__TEXT,__cstring)
+   │  • xpcshell (__TEXT,__cstring)
+   │  • browser (__TEXT,__cstring)
+   │  • Mozilla (__TEXT,__cstring)
+   │  • Firefox (__TEXT,__cstring)
+   │  • firefox (__TEXT,__cstring)
+   │  • 133.0.3 (__TEXT,__cstring)
+   │  • 20241209150345 (__TEXT,__cstring)
    └────────────────
 ```
 
