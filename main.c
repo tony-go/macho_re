@@ -37,7 +37,7 @@ void print_arch(const struct arch_analysis *arch_analysis) {
   printf("🔧 Architecture: %s\n", arch_analysis->architecture);
   printf("📁 File Type: %s\n", filetype_to_string(arch_analysis->filetype));
 
-  printf("   ├─ Flags :\n");
+  printf("   ├─ Binary Flags:\n");
   printf("   │  • No Undefined References: %s\n",
          arch_analysis->no_undefined_refs ? "Yes" : "No");
   printf("   │  • Dyld Compatible: %s\n",
@@ -51,14 +51,15 @@ void print_arch(const struct arch_analysis *arch_analysis) {
   printf("   │  • Enforce No Heap Execution: %s\n",
          arch_analysis->enforce_no_heap_exec ? "Yes" : "No");
   
-  printf("   ├─ Signed: %s\n", arch_analysis->is_signed ? "Yes" : "No");
-  if (arch_analysis->codesign_info->is_library_validation_disabled) {
+  printf("   ├─ Security Flags:\n");
+  printf("   │  • Is Signed: %s\n", arch_analysis->security_flags->is_signed ? "Yes" : "No"); 
+  if (arch_analysis->security_flags->is_library_validation_disabled) {
     printf("   │  • Library Validation Disabled: Yes \n");
   }
-  if (arch_analysis->codesign_info->is_dylib_env_var_allowed) {
+  if (arch_analysis->security_flags->is_dylib_env_var_allowed) {
     printf("   │  •  Dylib Environment Variable allowed: Yes \n");
   }
-  if (arch_analysis->codesign_info->has_hardened_runtime) {
+  if (arch_analysis->security_flags->has_hardened_runtime) {
     printf("   │  • Hardened Runtime: Yes \n");
   }
 
