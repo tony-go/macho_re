@@ -188,13 +188,29 @@ void parse_data_const_segment(struct arch_analysis *arch_analysis,
   }
 }
 
-void parse_entitlements(char *entitlements,
-                        struct arch_analysis *arch_analysis) {
+void parse_entitlements(CS_GenericBlob_shim *entitlements_blob,
+                        struct arch_analysis *arch_analysis, bool should_swap) {
+  // Extract the entitlements XML
+  uint32_t length = should_swap ? OSSwapInt32(entitlements_blob->length)
+                                : entitlements_blob->length;
+  uint32_t xml_length = length - sizeof(CS_GenericBlob_shim);
+  char *entitlements = strndup((char *)entitlements_blob->data, xml_length);
+
+  // Detect sensitive entitlements
   if (strstr(entitlements,
              "<key>com.apple.security.cs.disable-library-validation</key>") !=
           NULL &&
       strstr(entitlements, "<true/>") != NULL) {
     arch_analysis->codesign_info->is_library_validation_disabled = true;
+  }
+}
+
+void parse_codesign_flags(uint32_t raw_flags,
+                          struct codesign_info *codesign_info,
+                          bool should_swap) {
+  uint32_t flags = should_swap ? OSSwapInt32(raw_flags) : raw_flags;
+  if (flags & CS_RUNTIME) {
+    codesign_info->has_hardened_runtime = true;
   }
 }
 
@@ -221,7 +237,9 @@ void parse_codesign_info(struct arch_analysis *arch_analysis, uint8_t *buffer,
         should_swap ? OSSwapInt32(blob_index->offset) : blob_index->offset;
     switch (type) {
     case CSSLOT_CODEDIRECTORY: {
-      // TODO: see what we could extract from the code directory
+      CS_CodeDirectory_shim *code_directory =
+          (CS_CodeDirectory_shim *)(code_slot + offset);
+      parse_codesign_flags(code_directory->flags, codesign_info, should_swap);
       break;
     }
     case CSSLOT_REQUIREMENTS:
@@ -238,11 +256,7 @@ void parse_codesign_info(struct arch_analysis *arch_analysis, uint8_t *buffer,
         break;
       }
       // read only the size of the blob
-      uint32_t length = should_swap ? OSSwapInt32(entitlements_blob->length)
-                                    : entitlements_blob->length;
-      uint32_t xml_length = length - sizeof(CS_GenericBlob_shim);
-      char *ent = strndup((char *)entitlements_blob->data, xml_length);
-      parse_entitlements(ent, arch_analysis);
+      parse_entitlements(entitlements_blob, arch_analysis, should_swap);
       break;
     }
     }
