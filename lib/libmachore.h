@@ -8,6 +8,8 @@
 #define LIBMACHORE_ARCHITECTURE_SIZE 16
 #define LIBMACHORE_DYLIB_VERSION_SIZE 16
 #define LIBMACHORE_DYLIB_PATH_SIZE 256
+#define LIBMACHORE_ORIGINAL_SECTION_SIZE 24
+#define LIBMACHORE_ORIGINAL_SEGMENT_SIZE 24
 
 struct dylib_info {
   char path[LIBMACHORE_DYLIB_PATH_SIZE];
@@ -34,11 +36,12 @@ struct string_info {
   char *content;
   size_t size;
   uint64_t original_offset;
-  char original_section[24];
-  char original_segment[24];
+  char original_section[LIBMACHORE_ORIGINAL_SECTION_SIZE];
+  char original_segment[LIBMACHORE_ORIGINAL_SEGMENT_SIZE];
 };
 
-struct codesign_info {
+struct security_flags {
+  bool is_signed;
   bool is_library_validation_disabled;
   bool is_dylib_env_var_allowed;
   bool has_hardened_runtime;
@@ -55,7 +58,6 @@ struct arch_analysis {
   bool uses_weak_symbols;
   bool allows_stack_execution;
   bool enforce_no_heap_exec;
-  bool is_signed;
 
   // Dylibs
   struct dylib_info *dylibs;
@@ -66,7 +68,7 @@ struct arch_analysis {
   size_t num_strings;
 
   // Codesign info
-  struct codesign_info *codesign_info;
+  struct security_flags *security_flags;
 };
 
 struct analysis {

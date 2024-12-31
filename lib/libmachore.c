@@ -26,24 +26,27 @@ bool is_fat_header(uint8_t *buffer) {
 }
 
 void clean_arch_analysis(struct arch_analysis *arch_analysis) {
+  // Binary flags
   arch_analysis->no_undefined_refs = false;
   arch_analysis->dyld_compatible = false;
   arch_analysis->defines_weak_symbols = false;
   arch_analysis->uses_weak_symbols = false;
   arch_analysis->allows_stack_execution = false;
   arch_analysis->enforce_no_heap_exec = false;
-  arch_analysis->is_signed = false;
+
+  // Security flags
+  if (arch_analysis->security_flags != NULL) {
+    free(arch_analysis->security_flags);
+  }
 
   // TODO: we should free the memory of the dylibs, strings
-  // and codesign_info by iterating over the arrays and freeing
+  // and security_flags by iterating over the arrays and freeing
   // each element.
   free(arch_analysis->dylibs);
   arch_analysis->num_dylibs = 0;
 
   free(arch_analysis->strings);
   arch_analysis->num_strings = 0;
-
-  free(arch_analysis->codesign_info);
 }
 
 // The version is a 32-bit integer in the format 0xMMmmPPPP, where MM is the
@@ -201,25 +204,27 @@ void parse_entitlements(CS_GenericBlob_shim *entitlements_blob,
              "<key>com.apple.security.cs.disable-library-validation</key>") !=
           NULL &&
       strstr(entitlements, "<true/>") != NULL) {
-    arch_analysis->codesign_info->is_library_validation_disabled = true;
+    arch_analysis->security_flags->is_library_validation_disabled = true;
   }
 }
 
 void parse_codesign_flags(uint32_t raw_flags,
-                          struct codesign_info *codesign_info,
+                          struct security_flags *security_flags,
                           bool should_swap) {
   uint32_t flags = should_swap ? OSSwapInt32(raw_flags) : raw_flags;
   if (flags & CS_RUNTIME) {
-    codesign_info->has_hardened_runtime = true;
+    security_flags->has_hardened_runtime = true;
   }
 }
 
-void parse_codesign_info(struct arch_analysis *arch_analysis, uint8_t *buffer,
-                         struct linkedit_data_command *linkedit_data_cmd) {
-  // Allocate memory for the codesign_info
-  // and get the pointer to the codesign_info
-  arch_analysis->codesign_info = malloc(sizeof(struct codesign_info));
-  struct codesign_info *codesign_info = arch_analysis->codesign_info;
+void parse_security_flags(struct arch_analysis *arch_analysis, uint8_t *buffer,
+                          struct linkedit_data_command *linkedit_data_cmd) {
+  // Allocate memory for the security_flags
+  // and get the pointer to the security_flags
+  arch_analysis->security_flags = malloc(sizeof(struct security_flags));
+  struct security_flags *security_flags = arch_analysis->security_flags;
+
+  security_flags->is_signed = true;
 
   // Get the pointer to the code slot and cast it to a SuperBlob
   uint8_t *code_slot = buffer + linkedit_data_cmd->dataoff;
@@ -239,7 +244,7 @@ void parse_codesign_info(struct arch_analysis *arch_analysis, uint8_t *buffer,
     case CSSLOT_CODEDIRECTORY: {
       CS_CodeDirectory_shim *code_directory =
           (CS_CodeDirectory_shim *)(code_slot + offset);
-      parse_codesign_flags(code_directory->flags, codesign_info, should_swap);
+      parse_codesign_flags(code_directory->flags, security_flags, should_swap);
       break;
     }
     case CSSLOT_REQUIREMENTS:
@@ -314,10 +319,9 @@ void parse_load_commands(struct arch_analysis *arch_analysis, uint8_t *buffer,
       break;
     }
     case LC_CODE_SIGNATURE: {
-      arch_analysis->is_signed = true;
       struct linkedit_data_command *linkedit_data_cmd =
           (struct linkedit_data_command *)lc;
-      parse_codesign_info(arch_analysis, buffer, linkedit_data_cmd);
+      parse_security_flags(arch_analysis, buffer, linkedit_data_cmd);
       break;
     }
     default:

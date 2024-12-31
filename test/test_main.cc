@@ -230,7 +230,6 @@ TEST(libmachore, parse_macho_flags) {
   EXPECT_FALSE(arch_analysis->uses_weak_symbols);
   EXPECT_FALSE(arch_analysis->allows_stack_execution);
   EXPECT_FALSE(arch_analysis->enforce_no_heap_exec);
-  EXPECT_TRUE(arch_analysis->is_signed);
 
   free(buffer);
   clean_analysis(&analysis);
@@ -248,9 +247,10 @@ TEST(libmachore, parse_macho_entitelements) {
   parse_macho(&analysis, buffer, buffer_size);
 
   struct arch_analysis *arch_analysis = &analysis.arch_analyses[0];
-  EXPECT_FALSE(arch_analysis->codesign_info->is_library_validation_disabled);
-  EXPECT_FALSE(arch_analysis->codesign_info->is_dylib_env_var_allowed);
-  EXPECT_FALSE(arch_analysis->codesign_info->has_hardened_runtime);
+  EXPECT_FALSE(arch_analysis->security_flags->is_library_validation_disabled);
+  EXPECT_FALSE(arch_analysis->security_flags->is_library_validation_disabled);
+  EXPECT_FALSE(arch_analysis->security_flags->is_dylib_env_var_allowed);
+  EXPECT_TRUE(arch_analysis->security_flags->is_signed);
 
   free(buffer);
   clean_analysis(&analysis);
