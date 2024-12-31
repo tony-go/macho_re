@@ -73,13 +73,16 @@ void print_arch(const struct arch_analysis *arch_analysis) {
   printf("   ├─ String:\n");
   struct string_info *string_info = arch_analysis->strings;
   // NOTE: We only print the first 20 strings
-  for (size_t string_index = 0; string_index < 20;
+  size_t max_printed_strings = arch_analysis->num_strings < 20
+                                  ? arch_analysis->num_strings
+                                  : 20;
+  for (size_t string_index = 0; string_index < max_printed_strings;
        string_index++) {
     const char *content = string_info[string_index].content;
     size_t length = string_info[string_index].size;
 
     printf("   │  • ");
-
+    
     for (size_t i = 0; i < length; i++) {
       char c = content[i];
       switch (c) {
