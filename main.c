@@ -53,15 +53,9 @@ void print_arch(const struct arch_analysis *arch_analysis) {
   
   printf("   ├─ Security Flags:\n");
   printf("   │  • Is Signed: %s\n", arch_analysis->security_flags->is_signed ? "Yes" : "No"); 
-  if (arch_analysis->security_flags->is_library_validation_disabled) {
-    printf("   │  • Library Validation Disabled: Yes \n");
-  }
-  if (arch_analysis->security_flags->is_dylib_env_var_allowed) {
-    printf("   │  •  Dylib Environment Variable allowed: Yes \n");
-  }
-  if (arch_analysis->security_flags->has_hardened_runtime) {
-    printf("   │  • Hardened Runtime: Yes \n");
-  }
+  printf("   │  • Library Validation Disabled: %s\n", arch_analysis->security_flags->is_library_validation_disabled ? "Yes" : "No");
+  printf("   │  • Dylib Environment Variable allowed: %s \n", arch_analysis->security_flags->is_dylib_env_var_allowed ? "Yes" : "No");
+  printf("   │  • Hardened Runtime: %s\n", arch_analysis->security_flags->has_hardened_runtime ? "Yes" : "No");
 
   printf("   ├─ Linked Libraries:\n");
   struct dylib_info *dylib_info = arch_analysis->dylibs;
