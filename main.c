@@ -109,6 +109,20 @@ void print_arch(const struct arch_analysis *arch_analysis) {
   }
   printf("   │  ... (truncated)\n");
   printf("   └────────────────\n");
+
+  printf("   ├─ Symbols:\n");
+  struct symbol_info *symbol_info = arch_analysis->symbols;
+  // NOTE: We only print the first 20 strings
+  size_t max_printed_symbols =
+      arch_analysis->num_symbols < 20 ? arch_analysis->num_symbols : 20;
+  for (size_t symbol_index = 0; symbol_index < max_printed_symbols;
+       symbol_index++) {
+    struct symbol_info *sym = &symbol_info[symbol_index];
+
+    printf("   │  • %s \033[90m(%s)\033[0m \n", sym->name, sym->type);
+  }
+  printf("   │  ... (truncated)\n");
+  printf("   └────────────────\n");
 }
 
 void pretty_print_macho(const struct analysis *analysis, const char *path,
