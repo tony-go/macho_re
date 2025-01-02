@@ -293,6 +293,12 @@ void parse_symtab(struct arch_analysis *arch_analysis, uint8_t *buffer,
 
     char *symbol_name = str_symbol_table + symbol->n_un.n_strx;
     symbol_info->name = symbol_name;
+
+    // TODO: handle symbol type N_TYPE with #include <mach-o/stab.h>
+    uint8_t type = symbol->n_type;
+    if (type & N_STAB) {
+      strcpy(symbol_info->type, "STAB");
+    }
   }
 }
 

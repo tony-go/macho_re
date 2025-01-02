@@ -10,6 +10,7 @@
 #define LIBMACHORE_DYLIB_PATH_SIZE 256
 #define LIBMACHORE_ORIGINAL_SECTION_SIZE 24
 #define LIBMACHORE_ORIGINAL_SEGMENT_SIZE 24
+#define LIBMACHORE_SYMBOL_TYPE_SIZE 24
 
 struct dylib_info {
   char path[LIBMACHORE_DYLIB_PATH_SIZE];
@@ -42,7 +43,7 @@ struct string_info {
 
 struct symbol_info {
   char *name;
-  uint8_t type;
+  char type[LIBMACHORE_SYMBOL_TYPE_SIZE];
   char original_section[LIBMACHORE_ORIGINAL_SECTION_SIZE];
 };
 
