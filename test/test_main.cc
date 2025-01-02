@@ -272,6 +272,7 @@ TEST(libmachore, parse_macho_symbols) {
   EXPECT_STREQ(symbols[0].name, "radr://5614542");
   EXPECT_STREQ(symbols[0].type, "STAB");
   EXPECT_STREQ(symbols[1].name, "__mh_execute_header");
+  EXPECT_STREQ(symbols[1].type, "EXTERNAL");
   EXPECT_STREQ(symbols[2].name, "__DefaultRuneLocale");
 
   free(buffer);
