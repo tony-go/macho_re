@@ -10,6 +10,7 @@
 #define LIBMACHORE_DYLIB_PATH_SIZE 256
 #define LIBMACHORE_ORIGINAL_SECTION_SIZE 24
 #define LIBMACHORE_ORIGINAL_SEGMENT_SIZE 24
+#define LIBMACHORE_SYMBOL_TYPE_SIZE 24
 
 struct dylib_info {
   char path[LIBMACHORE_DYLIB_PATH_SIZE];
@@ -40,6 +41,12 @@ struct string_info {
   char original_segment[LIBMACHORE_ORIGINAL_SEGMENT_SIZE];
 };
 
+struct symbol_info {
+  char *name;
+  char type[LIBMACHORE_SYMBOL_TYPE_SIZE];
+  char original_section[LIBMACHORE_ORIGINAL_SECTION_SIZE];
+};
+
 struct security_flags {
   bool is_signed;
   bool is_library_validation_disabled;
@@ -66,6 +73,10 @@ struct arch_analysis {
   // Strings
   struct string_info *strings;
   size_t num_strings;
+
+  // Symnols
+  struct symbol_info *symbols;
+  size_t num_symbols;
 
   // Codesign info
   struct security_flags *security_flags;

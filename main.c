@@ -50,12 +50,18 @@ void print_arch(const struct arch_analysis *arch_analysis) {
          arch_analysis->allows_stack_execution ? "Yes" : "No");
   printf("   │  • Enforce No Heap Execution: %s\n",
          arch_analysis->enforce_no_heap_exec ? "Yes" : "No");
-  
+
   printf("   ├─ Security Flags:\n");
-  printf("   │  • Is Signed: %s\n", arch_analysis->security_flags->is_signed ? "Yes" : "No"); 
-  printf("   │  • Library Validation Disabled: %s\n", arch_analysis->security_flags->is_library_validation_disabled ? "Yes" : "No");
-  printf("   │  • Dylib Environment Variable allowed: %s \n", arch_analysis->security_flags->is_dylib_env_var_allowed ? "Yes" : "No");
-  printf("   │  • Hardened Runtime: %s\n", arch_analysis->security_flags->has_hardened_runtime ? "Yes" : "No");
+  printf("   │  • Is Signed: %s\n",
+         arch_analysis->security_flags->is_signed ? "Yes" : "No");
+  printf("   │  • Library Validation Disabled: %s\n",
+         arch_analysis->security_flags->is_library_validation_disabled ? "Yes"
+                                                                       : "No");
+  printf("   │  • Dylib Environment Variable allowed: %s \n",
+         arch_analysis->security_flags->is_dylib_env_var_allowed ? "Yes"
+                                                                 : "No");
+  printf("   │  • Hardened Runtime: %s\n",
+         arch_analysis->security_flags->has_hardened_runtime ? "Yes" : "No");
 
   printf("   ├─ Linked Libraries:\n");
   struct dylib_info *dylib_info = arch_analysis->dylibs;
@@ -68,16 +74,15 @@ void print_arch(const struct arch_analysis *arch_analysis) {
   printf("   ├─ String:\n");
   struct string_info *string_info = arch_analysis->strings;
   // NOTE: We only print the first 20 strings
-  size_t max_printed_strings = arch_analysis->num_strings < 20
-                                  ? arch_analysis->num_strings
-                                  : 20;
+  size_t max_printed_strings =
+      arch_analysis->num_strings < 20 ? arch_analysis->num_strings : 20;
   for (size_t string_index = 0; string_index < max_printed_strings;
        string_index++) {
     const char *content = string_info[string_index].content;
     size_t length = string_info[string_index].size;
 
     printf("   │  • ");
-    
+
     for (size_t i = 0; i < length; i++) {
       char c = content[i];
       switch (c) {
@@ -101,6 +106,26 @@ void print_arch(const struct arch_analysis *arch_analysis) {
            string_info[string_index].original_section);
 
     printf("\n");
+  }
+  if (arch_analysis->num_strings >= 20) {
+    printf("   │  ... (truncated)\n");
+  }
+  printf("   └────────────────\n");
+
+  printf("   ├─ Symbols:\n");
+  struct symbol_info *symbol_info = arch_analysis->symbols;
+  // NOTE: We only print the first 20 strings
+  size_t max_printed_symbols =
+      arch_analysis->num_symbols < 20 ? arch_analysis->num_symbols : 20;
+  for (size_t symbol_index = 0; symbol_index < max_printed_symbols;
+       symbol_index++) {
+    struct symbol_info *sym = &symbol_info[symbol_index];
+
+    printf("   │  • %s \033[90m(%s)\033[0m \n", sym->name, sym->type);
+  }
+
+  if (arch_analysis->num_symbols >= 20) {
+    printf("   │  ... (truncated)\n");
   }
   printf("   └────────────────\n");
 }

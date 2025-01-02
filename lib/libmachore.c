@@ -2,6 +2,7 @@
 #include <mach-o/dyld.h>
 #include <mach-o/fat.h>
 #include <mach-o/loader.h>
+#include <mach-o/nlist.h>
 
 #include <assert.h>
 #include <stdio.h>
@@ -40,13 +41,16 @@ void clean_arch_analysis(struct arch_analysis *arch_analysis) {
   }
 
   // TODO: we should free the memory of the dylibs, strings
-  // and security_flags by iterating over the arrays and freeing
+  // and symbols by iterating over the arrays and freeing
   // each element.
   free(arch_analysis->dylibs);
   arch_analysis->num_dylibs = 0;
 
   free(arch_analysis->strings);
   arch_analysis->num_strings = 0;
+
+  free(arch_analysis->symbols);
+  arch_analysis->num_symbols = 0;
 }
 
 // The version is a 32-bit integer in the format 0xMMmmPPPP, where MM is the
@@ -268,6 +272,41 @@ void parse_security_flags(struct arch_analysis *arch_analysis, uint8_t *buffer,
   }
 }
 
+void parse_symtab(struct arch_analysis *arch_analysis, uint8_t *buffer,
+                  struct symtab_command *symtab_cmd) {
+  char *str_symbol_table = (char *)buffer + symtab_cmd->stroff;
+  struct nlist_64 *symbol_table_start =
+      (struct nlist_64 *)(buffer + symtab_cmd->symoff);
+
+  for (uint32_t index = 0; index < symtab_cmd->nsyms; index++) {
+    struct nlist_64 *symbol = &symbol_table_start[index];
+    if (symbol->n_un.n_strx == 0) {
+      continue;
+    }
+
+    arch_analysis->num_symbols++;
+    arch_analysis->symbols =
+        realloc(arch_analysis->symbols,
+                arch_analysis->num_symbols * sizeof(struct symbol_info));
+    struct symbol_info *symbol_info =
+        &arch_analysis->symbols[arch_analysis->num_symbols - 1];
+
+    char *symbol_name = str_symbol_table + symbol->n_un.n_strx;
+    symbol_info->name = symbol_name;
+
+    // TODO: handle symbol type N_TYPE
+    // (with #include <mach-o/stab.h> for stabs)
+    uint8_t type = symbol->n_type;
+    if (type & N_STAB) {
+      strcpy(symbol_info->type, "STAB");
+    } else if (type & N_EXT) {
+      strcpy(symbol_info->type, "EXTERNAL");
+    } else {
+      strcpy(symbol_info->type, "PRIVATE EXTERNAL");
+    }
+  }
+}
+
 void parse_load_commands(struct arch_analysis *arch_analysis, uint8_t *buffer,
                          uint32_t ncmds) {
   struct mach_header *header = (struct mach_header *)buffer;
@@ -323,6 +362,10 @@ void parse_load_commands(struct arch_analysis *arch_analysis, uint8_t *buffer,
           (struct linkedit_data_command *)lc;
       parse_security_flags(arch_analysis, buffer, linkedit_data_cmd);
       break;
+    }
+    case LC_SYMTAB: {
+      struct symtab_command *symtab_cmd = (struct symtab_command *)lc;
+      parse_symtab(arch_analysis, buffer, symtab_cmd);
     }
     default:
       break;
