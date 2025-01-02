@@ -107,7 +107,9 @@ void print_arch(const struct arch_analysis *arch_analysis) {
 
     printf("\n");
   }
-  printf("   │  ... (truncated)\n");
+  if (arch_analysis->num_strings >= 20) {
+    printf("   │  ... (truncated)\n");
+  }
   printf("   └────────────────\n");
 
   printf("   ├─ Symbols:\n");
@@ -121,7 +123,10 @@ void print_arch(const struct arch_analysis *arch_analysis) {
 
     printf("   │  • %s \033[90m(%s)\033[0m \n", sym->name, sym->type);
   }
-  printf("   │  ... (truncated)\n");
+
+  if (arch_analysis->num_symbols >= 20) {
+    printf("   │  ... (truncated)\n");
+  }
   printf("   └────────────────\n");
 }
 
