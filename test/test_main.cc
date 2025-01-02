@@ -274,6 +274,7 @@ TEST(libmachore, parse_macho_symbols) {
   EXPECT_STREQ(symbols[1].name, "__mh_execute_header");
   EXPECT_STREQ(symbols[1].type, "EXTERNAL");
   EXPECT_STREQ(symbols[2].name, "__DefaultRuneLocale");
+  EXPECT_STREQ(symbols[2].type, "EXTERNAL");
 
   free(buffer);
   clean_analysis(&analysis);
