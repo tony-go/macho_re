@@ -301,6 +301,8 @@ void parse_symtab(struct arch_analysis *arch_analysis, uint8_t *buffer,
       strcpy(symbol_info->type, "STAB");
     } else if (type & N_EXT) {
       strcpy(symbol_info->type, "EXTERNAL");
+    } else {
+      strcpy(symbol_info->type, "PRIVATE EXTERNAL");
     }
   }
 }
