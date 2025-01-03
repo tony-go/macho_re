@@ -271,10 +271,13 @@ TEST(libmachore, parse_macho_symbols) {
   struct symbol_info *symbols = arch_analysis[0].symbols;
   EXPECT_STREQ(symbols[0].name, "radr://5614542");
   EXPECT_STREQ(symbols[0].type, "STAB");
+  EXPECT_TRUE(symbols[0].has_no_section);
   EXPECT_STREQ(symbols[1].name, "__mh_execute_header");
   EXPECT_STREQ(symbols[1].type, "EXTERNAL");
+  EXPECT_FALSE(symbols[1].has_no_section);
   EXPECT_STREQ(symbols[2].name, "__DefaultRuneLocale");
   EXPECT_STREQ(symbols[2].type, "EXTERNAL");
+  EXPECT_TRUE(symbols[2].has_no_section);
 
   free(buffer);
   clean_analysis(&analysis);

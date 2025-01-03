@@ -44,7 +44,7 @@ struct string_info {
 struct symbol_info {
   char *name;
   char type[LIBMACHORE_SYMBOL_TYPE_SIZE];
-  char original_section[LIBMACHORE_ORIGINAL_SECTION_SIZE];
+  bool has_no_section;
 };
 
 struct security_flags {
