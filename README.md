@@ -90,16 +90,16 @@ Please check `lib/libmachore.h`!
 
 ### Functions
 
-#### `void create_analysis(struct analysis *analysis)`
+#### `void init_output(struct machore_output_t *output)`
 Initializes a new analysis structure. Must be called before using the analysis structure.
 
-#### `void clean_analysis(struct analysis *analysis)`
+#### `void clean_output(struct machore_output_t *output)`
 Frees all resources associated with an analysis structure. Should be called when analysis is no longer needed.
 
-#### `void parse_macho(struct analysis *analysis, uint8_t *buffer, size_t size)`
+#### `void parse_macho(struct machore_output_t *output, uint8_t *buffer, size_t size)`
 Parses a Mach-O binary from a memory buffer.
 
-- `analysis`: Pointer to an initialized analysis structure
+- `output`: Pointer to an initialized output structure
 - `buffer`: Pointer to the binary data
 - `size`: Size of the binary data in bytes
 
@@ -111,23 +111,23 @@ uint8_t *buffer = /* ... */;
 size_t size = /* ... */;
 
 // Initialize analysis
-struct analysis analysis;
-create_analysis(&analysis);
+struct machore_output_t output;
+init_output(&output);
 
 // Parse the binary
-parse_macho(&analysis, buffer, size);
+parse_macho(&output, buffer, size);
 
 // Use the results
-for (size_t i = 0; i < analysis.num_arch_analyses; i++) {
-    struct arch_analysis *arch = &analysis.arch_analyses[i];
-    printf("Architecture: %s\n", arch->architecture);
+for (size_t i = 0; i < output.num_arch_outputs; i++) {
+    struct arch_analysis *arch_output = &output.arch_outputs[i];
+    printf("Architecture: %s\n", arch_output->architecture);
 
-    for (size_t j = 0; j < arch->num_dylibs; j++) {
-        struct dylib_info *lib = &arch->dylibs[j];
+    for (size_t j = 0; j < arch_output->num_dylibs; j++) {
+        struct dylib_info *lib = &arch_output->dylibs[j];
         printf("Library: %s (version %s)\n", lib->path, lib->version);
     }
 }
 
 // Clean up
-clean_analysis(&analysis);
+clean_output(&output);
 ```
