@@ -26,31 +26,31 @@ bool is_fat_header(uint8_t *buffer) {
          magic == FAT_CIGAM_64;
 }
 
-void clean_arch_analysis(struct arch_analysis *arch_analysis) {
+void clean_arch_output(struct machore_arch_output_t *arch_output) {
   // Binary flags
-  arch_analysis->no_undefined_refs = false;
-  arch_analysis->dyld_compatible = false;
-  arch_analysis->defines_weak_symbols = false;
-  arch_analysis->uses_weak_symbols = false;
-  arch_analysis->allows_stack_execution = false;
-  arch_analysis->enforce_no_heap_exec = false;
+  arch_output->no_undefined_refs = false;
+  arch_output->dyld_compatible = false;
+  arch_output->defines_weak_symbols = false;
+  arch_output->uses_weak_symbols = false;
+  arch_output->allows_stack_execution = false;
+  arch_output->enforce_no_heap_exec = false;
 
   // Security flags
-  if (arch_analysis->security_flags != NULL) {
-    free(arch_analysis->security_flags);
+  if (arch_output->security_flags != NULL) {
+    free(arch_output->security_flags);
   }
 
   // TODO: we should free the memory of the dylibs, strings
   // and symbols by iterating over the arrays and freeing
   // each element.
-  free(arch_analysis->dylibs);
-  arch_analysis->num_dylibs = 0;
+  free(arch_output->dylibs);
+  arch_output->num_dylibs = 0;
 
-  free(arch_analysis->strings);
-  arch_analysis->num_strings = 0;
+  free(arch_output->strings);
+  arch_output->num_strings = 0;
 
-  free(arch_analysis->symbols);
-  arch_analysis->num_symbols = 0;
+  free(arch_output->symbols);
+  arch_output->num_symbols = 0;
 }
 
 // The version is a 32-bit integer in the format 0xMMmmPPPP, where MM is the
@@ -76,14 +76,13 @@ bool parse_dylib_name(struct dylib_command *cmd, char *output_name_str,
 }
 
 void parse_dylib_command(struct dylib_command *dylib_cmd,
-                         struct arch_analysis *arch_analysis) {
-  arch_analysis->num_dylibs++;
-  arch_analysis->dylibs =
-      realloc(arch_analysis->dylibs,
-              arch_analysis->num_dylibs * sizeof(struct dylib_info));
+                         struct machore_arch_output_t *arch_output) {
+  arch_output->num_dylibs++;
+  arch_output->dylibs = realloc(
+      arch_output->dylibs, arch_output->num_dylibs * sizeof(struct dylib_info));
 
   struct dylib_info *dylib_info =
-      &arch_analysis->dylibs[arch_analysis->num_dylibs - 1];
+      &arch_output->dylibs[arch_output->num_dylibs - 1];
 
   char name_str[LIBMACHORE_DYLIB_PATH_SIZE];
   bool is_name_truncated =
@@ -96,19 +95,19 @@ void parse_dylib_command(struct dylib_command *dylib_cmd,
   strncpy(dylib_info->version, version_str, LIBMACHORE_DYLIB_VERSION_SIZE);
 }
 
-#define PARSE_SECTION(arch_analysis, buffer, sect, segment_name)               \
+#define PARSE_SECTION(arch_output, buffer, sect, segment_name)                 \
   char *string_start = (char *)buffer + sect->offset;                          \
   char *string_end = string_start + sect->size;                                \
   char *string = string_start;                                                 \
   while (string < string_end) {                                                \
     const size_t string_length = strlen(string);                               \
     if (string_length > 0) {                                                   \
-      arch_analysis->num_strings++;                                            \
-      arch_analysis->strings =                                                 \
-          realloc(arch_analysis->strings,                                      \
-                  arch_analysis->num_strings * sizeof(struct string_info));    \
+      arch_output->num_strings++;                                              \
+      arch_output->strings =                                                   \
+          realloc(arch_output->strings,                                        \
+                  arch_output->num_strings * sizeof(struct string_info));      \
       struct string_info *string_info =                                        \
-          &arch_analysis->strings[arch_analysis->num_strings - 1];             \
+          &arch_output->strings[arch_output->num_strings - 1];                 \
       assert(string_info != NULL);                                             \
       string_info->size = string_length + 1;                                   \
       string_info->content = malloc(string_info->size);                        \
@@ -122,81 +121,82 @@ void parse_dylib_command(struct dylib_command *dylib_cmd,
     string += string_length + 1;                                               \
   }
 
-void parse_text_segment64(struct arch_analysis *arch_analysis, uint8_t *buffer,
-                          struct segment_command_64 *seg) {
+void parse_text_segment64(struct machore_arch_output_t *arch_output,
+                          uint8_t *buffer, struct segment_command_64 *seg) {
   struct section_64 *sect = (void *)seg + sizeof(struct segment_command_64);
   for (uint32_t index = 0; index < seg->nsects; index++) {
     if (strcmp(sect->sectname, "__cstring") == 0 ||
         strcmp(sect->sectname, "__const") == 0 ||
         strcmp(sect->sectname, "__oslogstring") == 0) {
-      PARSE_SECTION(arch_analysis, buffer, sect, "__TEXT");
+      PARSE_SECTION(arch_output, buffer, sect, "__TEXT");
     }
     sect++;
   }
 }
 
-void parse_text_segment(struct arch_analysis *arch_analysis, uint8_t *buffer,
-                        struct segment_command *seg) {
+void parse_text_segment(struct machore_arch_output_t *arch_output,
+                        uint8_t *buffer, struct segment_command *seg) {
   struct section *sect = (void *)seg + sizeof(struct segment_command);
   for (uint32_t index = 0; index < seg->nsects; index++) {
     if (strcmp(sect->sectname, "__cstring") == 0 ||
         strcmp(sect->sectname, "__const") == 0 ||
         strcmp(sect->sectname, "__oslogstring") == 0) {
-      PARSE_SECTION(arch_analysis, buffer, sect, "__TEXT");
+      PARSE_SECTION(arch_output, buffer, sect, "__TEXT");
     }
     sect++;
   }
 }
 
-void parse_data_segment64(struct arch_analysis *arch_analysis, uint8_t *buffer,
-                          struct segment_command_64 *seg) {
+void parse_data_segment64(struct machore_arch_output_t *arch_output,
+                          uint8_t *buffer, struct segment_command_64 *seg) {
   struct section_64 *sect = (void *)seg + sizeof(struct segment_command_64);
   for (uint32_t index = 0; index < seg->nsects; index++) {
     if (strcmp(sect->sectname, "__const") == 0 ||
         strcmp(sect->sectname, "__cfstring") == 0) {
-      PARSE_SECTION(arch_analysis, buffer, sect, "__DATA");
+      PARSE_SECTION(arch_output, buffer, sect, "__DATA");
     }
     sect++;
   }
 }
 
-void parse_data_segment(struct arch_analysis *arch_analysis, uint8_t *buffer,
-                        struct segment_command *seg) {
+void parse_data_segment(struct machore_arch_output_t *arch_output,
+                        uint8_t *buffer, struct segment_command *seg) {
   struct section *sect = (void *)seg + sizeof(struct segment_command);
   for (uint32_t index = 0; index < seg->nsects; index++) {
     if (strcmp(sect->sectname, "__const") == 0 ||
         strcmp(sect->sectname, "__cfstring") == 0) {
-      PARSE_SECTION(arch_analysis, buffer, sect, "__DATA");
+      PARSE_SECTION(arch_output, buffer, sect, "__DATA");
     }
     sect++;
   }
 }
 
-void parse_data_const_segment64(struct arch_analysis *arch_analysis,
+void parse_data_const_segment64(struct machore_arch_output_t *arch_output,
                                 uint8_t *buffer,
                                 struct segment_command_64 *seg) {
   struct section_64 *sect = (void *)seg + sizeof(struct segment_command_64);
   for (uint32_t index = 0; index < seg->nsects; index++) {
     if (strcmp(sect->sectname, "__const") == 0) {
-      PARSE_SECTION(arch_analysis, buffer, sect, "__DATA_CONST");
+      PARSE_SECTION(arch_output, buffer, sect, "__DATA_CONST");
     }
     sect++;
   }
 }
 
-void parse_data_const_segment(struct arch_analysis *arch_analysis,
+void parse_data_const_segment(struct machore_arch_output_t *arch_output,
                               uint8_t *buffer, struct segment_command *seg) {
   struct section *sect = (void *)seg + sizeof(struct segment_command);
   for (uint32_t index = 0; index < seg->nsects; index++) {
     if (strcmp(sect->sectname, "__const") == 0) {
-      PARSE_SECTION(arch_analysis, buffer, sect, "__DATA_CONST");
+      PARSE_SECTION(arch_output, buffer, sect, "__DATA_CONST");
     }
     sect++;
   }
 }
 
 void parse_entitlements(CS_GenericBlob_shim *entitlements_blob,
-                        struct arch_analysis *arch_analysis, bool should_swap) {
+                        struct machore_arch_output_t *arch_output,
+                        bool should_swap) {
   // Extract the entitlements XML
   uint32_t length = should_swap ? OSSwapInt32(entitlements_blob->length)
                                 : entitlements_blob->length;
@@ -208,7 +208,7 @@ void parse_entitlements(CS_GenericBlob_shim *entitlements_blob,
              "<key>com.apple.security.cs.disable-library-validation</key>") !=
           NULL &&
       strstr(entitlements, "<true/>") != NULL) {
-    arch_analysis->security_flags->is_library_validation_disabled = true;
+    arch_output->security_flags->is_library_validation_disabled = true;
   }
 }
 
@@ -221,12 +221,13 @@ void parse_codesign_flags(uint32_t raw_flags,
   }
 }
 
-void parse_security_flags(struct arch_analysis *arch_analysis, uint8_t *buffer,
+void parse_security_flags(struct machore_arch_output_t *arch_output,
+                          uint8_t *buffer,
                           struct linkedit_data_command *linkedit_data_cmd) {
   // Allocate memory for the security_flags
   // and get the pointer to the security_flags
-  arch_analysis->security_flags = malloc(sizeof(struct security_flags));
-  struct security_flags *security_flags = arch_analysis->security_flags;
+  arch_output->security_flags = malloc(sizeof(struct security_flags));
+  struct security_flags *security_flags = arch_output->security_flags;
 
   security_flags->is_signed = true;
 
@@ -265,14 +266,14 @@ void parse_security_flags(struct arch_analysis *arch_analysis, uint8_t *buffer,
         break;
       }
       // read only the size of the blob
-      parse_entitlements(entitlements_blob, arch_analysis, should_swap);
+      parse_entitlements(entitlements_blob, arch_output, should_swap);
       break;
     }
     }
   }
 }
 
-void parse_symtab(struct arch_analysis *arch_analysis, uint8_t *buffer,
+void parse_symtab(struct machore_arch_output_t *arch_output, uint8_t *buffer,
                   struct symtab_command *symtab_cmd) {
   char *str_symbol_table = (char *)buffer + symtab_cmd->stroff;
   struct nlist_64 *symbol_table_start =
@@ -284,12 +285,12 @@ void parse_symtab(struct arch_analysis *arch_analysis, uint8_t *buffer,
       continue;
     }
 
-    arch_analysis->num_symbols++;
-    arch_analysis->symbols =
-        realloc(arch_analysis->symbols,
-                arch_analysis->num_symbols * sizeof(struct symbol_info));
+    arch_output->num_symbols++;
+    arch_output->symbols =
+        realloc(arch_output->symbols,
+                arch_output->num_symbols * sizeof(struct symbol_info));
     struct symbol_info *symbol_info =
-        &arch_analysis->symbols[arch_analysis->num_symbols - 1];
+        &arch_output->symbols[arch_output->num_symbols - 1];
 
     char *symbol_name = str_symbol_table + symbol->n_un.n_strx;
     symbol_info->name = symbol_name;
@@ -313,8 +314,8 @@ void parse_symtab(struct arch_analysis *arch_analysis, uint8_t *buffer,
   }
 }
 
-void parse_load_commands(struct arch_analysis *arch_analysis, uint8_t *buffer,
-                         uint32_t ncmds) {
+void parse_load_commands(struct machore_arch_output_t *arch_output,
+                         uint8_t *buffer, uint32_t ncmds) {
   struct mach_header *header = (struct mach_header *)buffer;
   uint32_t magic_header = header->magic;
 
@@ -338,40 +339,40 @@ void parse_load_commands(struct arch_analysis *arch_analysis, uint8_t *buffer,
     case LC_LOAD_UPWARD_DYLIB:
     case LC_LAZY_LOAD_DYLIB: {
       // TODO: we should add context, like the original_load_command
-      parse_dylib_command((struct dylib_command *)lc, arch_analysis);
+      parse_dylib_command((struct dylib_command *)lc, arch_output);
       break;
     }
     case LC_SEGMENT_64: {
       struct segment_command_64 *seg = (struct segment_command_64 *)lc;
       if (strcmp(seg->segname, "__TEXT") == 0) {
-        parse_text_segment64(arch_analysis, buffer, seg);
+        parse_text_segment64(arch_output, buffer, seg);
       } else if (strcmp(seg->segname, "__DATA") == 0) {
-        parse_data_segment64(arch_analysis, buffer, seg);
+        parse_data_segment64(arch_output, buffer, seg);
       } else if (strcmp(seg->segname, "__DATA_CONST") == 0) {
-        parse_data_const_segment64(arch_analysis, buffer, seg);
+        parse_data_const_segment64(arch_output, buffer, seg);
       }
       break;
     }
     case LC_SEGMENT: {
       struct segment_command *seg = (struct segment_command *)lc;
       if (strcmp(seg->segname, "__TEXT") == 0) {
-        parse_text_segment(arch_analysis, buffer, seg);
+        parse_text_segment(arch_output, buffer, seg);
       } else if (strcmp(seg->segname, "__DATA") == 0) {
-        parse_data_segment(arch_analysis, buffer, seg);
+        parse_data_segment(arch_output, buffer, seg);
       } else if (strcmp(seg->segname, "__DATA_CONST") == 0) {
-        parse_data_const_segment(arch_analysis, buffer, seg);
+        parse_data_const_segment(arch_output, buffer, seg);
       }
       break;
     }
     case LC_CODE_SIGNATURE: {
       struct linkedit_data_command *linkedit_data_cmd =
           (struct linkedit_data_command *)lc;
-      parse_security_flags(arch_analysis, buffer, linkedit_data_cmd);
+      parse_security_flags(arch_output, buffer, linkedit_data_cmd);
       break;
     }
     case LC_SYMTAB: {
       struct symtab_command *symtab_cmd = (struct symtab_command *)lc;
-      parse_symtab(arch_analysis, buffer, symtab_cmd);
+      parse_symtab(arch_output, buffer, symtab_cmd);
     }
     default:
       break;
@@ -430,47 +431,47 @@ filetype_t get_file_type(uint32_t filetype) {
   }
 }
 
-void parse_flags(uint32_t flags, struct arch_analysis *arch_analysis) {
-  arch_analysis->no_undefined_refs = flags & MH_NOUNDEFS;
-  arch_analysis->dyld_compatible = flags & MH_DYLDLINK;
-  arch_analysis->defines_weak_symbols = flags & MH_WEAK_DEFINES;
-  arch_analysis->uses_weak_symbols = flags & MH_BINDS_TO_WEAK;
-  arch_analysis->allows_stack_execution = flags & MH_ALLOW_STACK_EXECUTION;
-  arch_analysis->enforce_no_heap_exec = flags & MH_NO_HEAP_EXECUTION;
+void parse_flags(uint32_t flags, struct machore_arch_output_t *arch_output) {
+  arch_output->no_undefined_refs = flags & MH_NOUNDEFS;
+  arch_output->dyld_compatible = flags & MH_DYLDLINK;
+  arch_output->defines_weak_symbols = flags & MH_WEAK_DEFINES;
+  arch_output->uses_weak_symbols = flags & MH_BINDS_TO_WEAK;
+  arch_output->allows_stack_execution = flags & MH_ALLOW_STACK_EXECUTION;
+  arch_output->enforce_no_heap_exec = flags & MH_NO_HEAP_EXECUTION;
 }
 
-void parse_macho_arch(struct analysis *analysis, int arch_index,
+void parse_macho_arch(struct machore_output_t *output, int arch_index,
                       uint8_t *buffer) {
-  // 1. Allocate memory for the new arch_analysis struct
+  // 1. Allocate memory for the new arch_output struct
   // TODO(tonygo):
   // - Check if the realloc failed
   // - Offload this allocation to a function
-  analysis->num_arch_analyses++;
-  analysis->arch_analyses =
-      realloc(analysis->arch_analyses,
-              analysis->num_arch_analyses * sizeof(struct arch_analysis));
+  output->num_arch_outputs++;
+  output->arch_outputs =
+      realloc(output->arch_outputs,
+              output->num_arch_outputs * sizeof(struct machore_arch_output_t));
 
-  // 2. Pick the the arch_analysis struct that we just allocated
-  struct arch_analysis *arch_analysis = &analysis->arch_analyses[arch_index];
+  // 2. Pick the the arch_output struct that we just allocated
+  struct machore_arch_output_t *arch_output = &output->arch_outputs[arch_index];
 
   // 3. Pick the macho header of this architecture
   struct mach_header *header = (struct mach_header *)buffer;
 
   // 4. Copy the architecture name
   uint32_t cpu_type = header->cputype;
-  copy_cpu_arch(cpu_type, arch_analysis->architecture,
+  copy_cpu_arch(cpu_type, arch_output->architecture,
                 LIBMACHORE_ARCHITECTURE_SIZE);
 
   // 5. Assin the filetype enum
   uint32_t filetype = header->filetype;
-  arch_analysis->filetype = get_file_type(filetype);
+  arch_output->filetype = get_file_type(filetype);
 
   // 6. Parse the load commands
   uint32_t ncmds = header->ncmds;
-  parse_load_commands(arch_analysis, buffer, ncmds);
+  parse_load_commands(arch_output, buffer, ncmds);
 
   // 7. Parse flags
-  parse_flags(header->flags, arch_analysis);
+  parse_flags(header->flags, arch_output);
 }
 
 /*
@@ -481,26 +482,27 @@ void parse_macho_arch(struct analysis *analysis, int arch_index,
  *
  */
 
-void create_analysis(struct analysis *analysis) {
-  analysis->arch_analyses = NULL;
-  analysis->num_arch_analyses = 0;
+void init_output(struct machore_output_t *analysis) {
+  analysis->arch_outputs = NULL;
+  analysis->num_arch_outputs = 0;
   analysis->is_fat = false;
 }
 
-void clean_analysis(struct analysis *analysis) {
-  for (size_t i = 0; i < analysis->num_arch_analyses; i++) {
-    clean_arch_analysis(&analysis->arch_analyses[i]);
+void clean_output(struct machore_output_t *output) {
+  for (size_t i = 0; i < output->num_arch_outputs; i++) {
+    clean_arch_output(&output->arch_outputs[i]);
   }
-  free(analysis->arch_analyses);
-  analysis->arch_analyses = NULL;
-  analysis->num_arch_analyses = 0;
-  analysis->is_fat = false;
+  free(output->arch_outputs);
+  output->arch_outputs = NULL;
+  output->num_arch_outputs = 0;
+  output->is_fat = false;
 }
 
-void parse_macho(struct analysis *analysis, uint8_t *buffer, size_t size) {
+void parse_macho(struct machore_output_t *output, uint8_t *buffer,
+                 size_t size) {
   bool is_fat = is_fat_header(buffer);
   if (is_fat) {
-    analysis->is_fat = true;
+    output->is_fat = true;
     struct fat_header *header = (struct fat_header *)buffer;
     uint32_t nfat_arch = ntohl(header->nfat_arch);
 
@@ -509,9 +511,9 @@ void parse_macho(struct analysis *analysis, uint8_t *buffer, size_t size) {
           (struct fat_arch *)(buffer + sizeof(struct fat_header) +
                               arch_index * sizeof(struct fat_arch));
       uint32_t offset = ntohl(arch->offset);
-      parse_macho_arch(analysis, arch_index, buffer + offset);
+      parse_macho_arch(output, arch_index, buffer + offset);
     }
   } else {
-    parse_macho_arch(analysis, 0, buffer);
+    parse_macho_arch(output, 0, buffer);
   }
 }

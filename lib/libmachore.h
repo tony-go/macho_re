@@ -54,7 +54,7 @@ struct security_flags {
   bool has_hardened_runtime;
 };
 
-struct arch_analysis {
+struct machore_arch_output_t {
   char architecture[LIBMACHORE_ARCHITECTURE_SIZE];
   filetype_t filetype;
 
@@ -82,16 +82,16 @@ struct arch_analysis {
   struct security_flags *security_flags;
 };
 
-struct analysis {
-  struct arch_analysis *arch_analyses;
-  size_t num_arch_analyses;
+struct machore_output_t {
+  struct machore_arch_output_t *arch_outputs;
+  size_t num_arch_outputs;
   bool is_fat;
 };
 
-void create_analysis(struct analysis *analysis);
+void init_output(struct machore_output_t *output);
 
-void clean_analysis(struct analysis *analysis);
+void clean_output(struct machore_output_t *output);
 
-void parse_macho(struct analysis *analysis, uint8_t *buffer, size_t size);
+void parse_macho(struct machore_output_t *output, uint8_t *buffer, size_t size);
 
 #endif

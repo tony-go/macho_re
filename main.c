@@ -33,49 +33,48 @@ const char *filetype_to_string(filetype_t filetype) {
   }
 }
 
-void print_arch(const struct arch_analysis *arch_analysis) {
-  printf("🔧 Architecture: %s\n", arch_analysis->architecture);
-  printf("📁 File Type: %s\n", filetype_to_string(arch_analysis->filetype));
+void print_arch(const struct machore_arch_output_t *arch_output) {
+  printf("🔧 Architecture: %s\n", arch_output->architecture);
+  printf("📁 File Type: %s\n", filetype_to_string(arch_output->filetype));
 
   printf("   ├─ Binary Flags:\n");
   printf("   │  • No Undefined References: %s\n",
-         arch_analysis->no_undefined_refs ? "Yes" : "No");
+         arch_output->no_undefined_refs ? "Yes" : "No");
   printf("   │  • Dyld Compatible: %s\n",
-         arch_analysis->dyld_compatible ? "Yes" : "No");
+         arch_output->dyld_compatible ? "Yes" : "No");
   printf("   │  • Defines Weak Symbols: %s\n",
-         arch_analysis->defines_weak_symbols ? "Yes" : "No");
+         arch_output->defines_weak_symbols ? "Yes" : "No");
   printf("   │  • Uses Weak Symbols: %s\n",
-         arch_analysis->uses_weak_symbols ? "Yes" : "No");
+         arch_output->uses_weak_symbols ? "Yes" : "No");
   printf("   │  • Allows Stack Execution: %s\n",
-         arch_analysis->allows_stack_execution ? "Yes" : "No");
+         arch_output->allows_stack_execution ? "Yes" : "No");
   printf("   │  • Enforce No Heap Execution: %s\n",
-         arch_analysis->enforce_no_heap_exec ? "Yes" : "No");
+         arch_output->enforce_no_heap_exec ? "Yes" : "No");
 
   printf("   ├─ Security Flags:\n");
   printf("   │  • Is Signed: %s\n",
-         arch_analysis->security_flags->is_signed ? "Yes" : "No");
+         arch_output->security_flags->is_signed ? "Yes" : "No");
   printf("   │  • Library Validation Disabled: %s\n",
-         arch_analysis->security_flags->is_library_validation_disabled ? "Yes"
-                                                                       : "No");
+         arch_output->security_flags->is_library_validation_disabled ? "Yes"
+                                                                     : "No");
   printf("   │  • Dylib Environment Variable allowed: %s \n",
-         arch_analysis->security_flags->is_dylib_env_var_allowed ? "Yes"
-                                                                 : "No");
+         arch_output->security_flags->is_dylib_env_var_allowed ? "Yes" : "No");
   printf("   │  • Hardened Runtime: %s\n",
-         arch_analysis->security_flags->has_hardened_runtime ? "Yes" : "No");
+         arch_output->security_flags->has_hardened_runtime ? "Yes" : "No");
 
   printf("   ├─ Linked Libraries:\n");
-  struct dylib_info *dylib_info = arch_analysis->dylibs;
-  for (size_t dylib_index = 0; dylib_index < arch_analysis->num_dylibs;
+  struct dylib_info *dylib_info = arch_output->dylibs;
+  for (size_t dylib_index = 0; dylib_index < arch_output->num_dylibs;
        dylib_index++) {
     printf("   │  • %s\n", dylib_info[dylib_index].path);
     printf("   │   └─ Version: %s\n", dylib_info[dylib_index].version);
   }
 
   printf("   ├─ String:\n");
-  struct string_info *string_info = arch_analysis->strings;
+  struct string_info *string_info = arch_output->strings;
   // NOTE: We only print the first 20 strings
   size_t max_printed_strings =
-      arch_analysis->num_strings < 20 ? arch_analysis->num_strings : 20;
+      arch_output->num_strings < 20 ? arch_output->num_strings : 20;
   for (size_t string_index = 0; string_index < max_printed_strings;
        string_index++) {
     const char *content = string_info[string_index].content;
@@ -107,16 +106,16 @@ void print_arch(const struct arch_analysis *arch_analysis) {
 
     printf("\n");
   }
-  if (arch_analysis->num_strings >= 20) {
+  if (arch_output->num_strings >= 20) {
     printf("   │  ... (truncated)\n");
   }
   printf("   └────────────────\n");
 
   printf("   ├─ Symbols:\n");
-  struct symbol_info *symbol_info = arch_analysis->symbols;
+  struct symbol_info *symbol_info = arch_output->symbols;
   // NOTE: We only print the first 20 strings
   size_t max_printed_symbols =
-      arch_analysis->num_symbols < 20 ? arch_analysis->num_symbols : 20;
+      arch_output->num_symbols < 20 ? arch_output->num_symbols : 20;
   for (size_t symbol_index = 0; symbol_index < max_printed_symbols;
        symbol_index++) {
     struct symbol_info *sym = &symbol_info[symbol_index];
@@ -124,29 +123,29 @@ void print_arch(const struct arch_analysis *arch_analysis) {
     printf("   │  • %s \033[90m(%s)\033[0m \n", sym->name, sym->type);
   }
 
-  if (arch_analysis->num_symbols >= 20) {
+  if (arch_output->num_symbols >= 20) {
     printf("   │  ... (truncated)\n");
   }
   printf("   └────────────────\n");
 }
 
-void pretty_print_macho(const struct analysis *analysis, const char *path,
+void pretty_print_macho(const struct machore_output_t *output, const char *path,
                         bool is_first_only) {
-  if (analysis->is_fat && !is_first_only) {
+  if (output->is_fat && !is_first_only) {
     printf("📦 Fat Binary\n");
     printf("📂 Path: %s\n", path);
     printf("═══════════════════════\n\n");
 
-    for (size_t arch_index = 0; arch_index < analysis->num_arch_analyses;
+    for (size_t arch_index = 0; arch_index < output->num_arch_outputs;
          arch_index++) {
-      print_arch(&analysis->arch_analyses[arch_index]);
+      print_arch(&output->arch_outputs[arch_index]);
       printf("\n");
     }
   } else {
     printf("📦 Mach-O Binary\n");
     printf("📂 Path: %s\n", path);
     printf("══════════════\n");
-    print_arch(&analysis->arch_analyses[0]);
+    print_arch(&output->arch_outputs[0]);
   }
 }
 
@@ -194,13 +193,13 @@ int main(int argc, char *argv[]) {
   }
   fclose(file);
 
-  struct analysis analysis;
-  create_analysis(&analysis);
+  struct machore_output_t output;
+  init_output(&output);
 
-  parse_macho(&analysis, buffer, size);
-  pretty_print_macho(&analysis, filename, is_first_only);
+  parse_macho(&output, buffer, size);
+  pretty_print_macho(&output, filename, is_first_only);
 
   free(buffer);
-  clean_analysis(&analysis);
+  clean_output(&output);
   return 0;
 }
