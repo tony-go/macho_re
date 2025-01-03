@@ -294,6 +294,12 @@ void parse_symtab(struct arch_analysis *arch_analysis, uint8_t *buffer,
     char *symbol_name = str_symbol_table + symbol->n_un.n_strx;
     symbol_info->name = symbol_name;
 
+    if (symbol->n_sect == NO_SECT) {
+      symbol_info->has_no_section = true;
+    } else {
+      symbol_info->has_no_section = false;
+    }
+
     // TODO: handle symbol type N_TYPE
     // (with #include <mach-o/stab.h> for stabs)
     uint8_t type = symbol->n_type;
