@@ -36,25 +36,33 @@ static void read_file_to_buffer(const char *filename, uint8_t **buffer,
   fclose(file);
 }
 
+#define INIT_OUTPUT(filename)                                                  \
+  struct machore_output_t analysis;                                            \
+  init_output(&analysis);                                                      \
+  uint8_t *buffer = nullptr;                                                   \
+  size_t buffer_size = 0;                                                      \
+  read_file_to_buffer(filename, &buffer, &buffer_size);
+
+#define CLEAN_OUTPUT()                                                         \
+  free(buffer);                                                                \
+  clean_output(&analysis);
+
 TEST(libmachore, create_analysis) {
-  struct machore_output_t analysis;
-  create_analysis(&analysis);
+  INIT_OUTPUT("/bin/ls");
 
   EXPECT_EQ(analysis.arch_analyses, nullptr);
   EXPECT_EQ(analysis.num_arch_analyses, 0);
   EXPECT_EQ(analysis.is_fat, false);
 
-  clean_analysis(&analysis);
+  CLEAN_OUTPUT();
 }
 
 TEST(libmachore, clean_analysis) {
-  struct machore_output_t analysis;
-  create_analysis(&analysis);
+  INIT_OUTPUT("/bin/ls");
   analysis.arch_analyses =
       (struct arch_analysis *)malloc(sizeof(struct arch_analysis));
   analysis.num_arch_analyses = 1;
-
-  clean_analysis(&analysis);
+  CLEAN_OUTPUT()
 
   EXPECT_EQ(analysis.arch_analyses, nullptr);
   EXPECT_EQ(analysis.num_arch_analyses, 0);
@@ -62,31 +70,17 @@ TEST(libmachore, clean_analysis) {
 }
 
 TEST(libmachore, parse_macho_fat) {
-  struct machore_output_t analysis;
-  create_analysis(&analysis);
-
-  const char *filename = "/bin/ls";
-  uint8_t *buffer = nullptr;
-  size_t buffer_size = 0;
-  read_file_to_buffer(filename, &buffer, &buffer_size);
-
+  INIT_OUTPUT("/bin/ls");
   parse_macho(&analysis, buffer, buffer_size);
 
   EXPECT_EQ(analysis.num_arch_analyses, 2);
   EXPECT_EQ(analysis.is_fat, true);
 
-  free(buffer);
-  clean_analysis(&analysis);
+  CLEAN_OUTPUT();
 }
 
 TEST(libmachore, parse_macho_arch) {
-  struct machore_output_t analysis;
-  create_analysis(&analysis);
-
-  const char *filename = "/bin/ls";
-  uint8_t *buffer = nullptr;
-  size_t buffer_size = 0;
-  read_file_to_buffer(filename, &buffer, &buffer_size);
+  INIT_OUTPUT("/bin/ls");
 
   parse_macho(&analysis, buffer, buffer_size);
   struct arch_analysis *arch_analysis = &analysis.arch_analyses[0];
@@ -96,8 +90,7 @@ TEST(libmachore, parse_macho_arch) {
   EXPECT_EQ(arch_analysis->num_dylibs, 3);
   // TODO: add string
 
-  free(buffer);
-  clean_analysis(&analysis);
+  CLEAN_OUTPUT();
 }
 
 TEST(libmachore, parse_macho_filetypes) {
@@ -106,23 +99,23 @@ TEST(libmachore, parse_macho_filetypes) {
   size_t buffer_size = 0;
 
   // Test MH_EXECUTE
-  create_analysis(&analysis);
+  init_output(&analysis);
   read_file_to_buffer("/bin/ls", &buffer, &buffer_size);
   parse_macho(&analysis, buffer, buffer_size);
   EXPECT_EQ(analysis.arch_analyses[0].filetype, LIBMACHORE_FILETYPE_EXECUTE);
   free(buffer);
-  clean_analysis(&analysis);
+  clean_output(&analysis);
 
   // Test MH_DYLIB
-  create_analysis(&analysis);
+  init_output(&analysis);
   read_file_to_buffer("/usr/lib/libgmalloc.dylib", &buffer, &buffer_size);
   parse_macho(&analysis, buffer, buffer_size);
   EXPECT_EQ(analysis.arch_analyses[0].filetype, LIBMACHORE_FILETYPE_DYLIB);
   free(buffer);
-  clean_analysis(&analysis);
+  clean_output(&analysis);
 
   // Test MH_BUNDLE
-  create_analysis(&analysis);
+  init_output(&analysis);
   read_file_to_buffer(
       "/System/Library/CoreServices/SecurityAgentPlugins/DiskUnlock.bundle/"
       "Contents/MacOS/DiskUnlock",
@@ -130,46 +123,39 @@ TEST(libmachore, parse_macho_filetypes) {
   parse_macho(&analysis, buffer, buffer_size);
   EXPECT_EQ(analysis.arch_analyses[0].filetype, LIBMACHORE_FILETYPE_BUNDLE);
   free(buffer);
-  clean_analysis(&analysis);
+  clean_output(&analysis);
 
   // Test MH_DYLINKER
-  create_analysis(&analysis);
+  init_output(&analysis);
   read_file_to_buffer("/usr/lib/dyld", &buffer, &buffer_size);
   parse_macho(&analysis, buffer, buffer_size);
   EXPECT_EQ(analysis.arch_analyses[0].filetype, LIBMACHORE_FILETYPE_DYLINKER);
   free(buffer);
-  clean_analysis(&analysis);
+  clean_output(&analysis);
 
   // Test MH_OBJECT
   auto object_binary_path =
       std::filesystem::current_path() / "fixtures" / "test.o";
-  create_analysis(&analysis);
+  init_output(&analysis);
   read_file_to_buffer(object_binary_path.c_str(), &buffer, &buffer_size);
   parse_macho(&analysis, buffer, buffer_size);
   EXPECT_EQ(analysis.arch_analyses[0].filetype, LIBMACHORE_FILETYPE_OBJECT);
   free(buffer);
-  clean_analysis(&analysis);
+  clean_output(&analysis);
 
   // TEST MH_DSYM
   auto dsym_path = std::filesystem::current_path() / "fixtures" / "crash.dSYM" /
                    "Contents" / "Resources" / "DWARF" / "crash";
-  create_analysis(&analysis);
+  init_output(&analysis);
   read_file_to_buffer(dsym_path.c_str(), &buffer, &buffer_size);
   parse_macho(&analysis, buffer, buffer_size);
   EXPECT_EQ(analysis.arch_analyses[0].filetype, LIBMACHORE_FILETYPE_DSYM);
   free(buffer);
-  clean_analysis(&analysis);
+  clean_output(&analysis);
 }
 
 TEST(libmachore, parse_macho_dylib) {
-  struct machore_output_t analysis;
-  create_analysis(&analysis);
-
-  const char *filename = "/bin/ls";
-  uint8_t *buffer = nullptr;
-  size_t buffer_size = 0;
-  read_file_to_buffer(filename, &buffer, &buffer_size);
-
+  INIT_OUTPUT("/bin/ls");
   parse_macho(&analysis, buffer, buffer_size);
 
   struct arch_analysis *arch_analysis = &analysis.arch_analyses[0];
@@ -185,19 +171,11 @@ TEST(libmachore, parse_macho_dylib) {
   EXPECT_STREQ(dylib_info_3->path, "/usr/lib/libSystem.B.dylib");
   EXPECT_FALSE(dylib_info_3->version[0] == '\0');
 
-  free(buffer);
-  clean_analysis(&analysis);
+  CLEAN_OUTPUT();
 }
 
 TEST(libmachore, parse_macho_strings) {
-  struct machore_output_t analysis;
-  create_analysis(&analysis);
-
-  const char *filename = "/bin/ls";
-  uint8_t *buffer = nullptr;
-  size_t buffer_size = 0;
-  read_file_to_buffer(filename, &buffer, &buffer_size);
-
+  INIT_OUTPUT("/bin/ls");
   parse_macho(&analysis, buffer, buffer_size);
 
   struct arch_analysis *arch_analysis = &analysis.arch_analyses[0];
@@ -208,19 +186,11 @@ TEST(libmachore, parse_macho_strings) {
   EXPECT_STREQ(string_info->original_section, "__const");
   EXPECT_TRUE(string_info->original_offset > 0);
 
-  free(buffer);
-  clean_analysis(&analysis);
+  CLEAN_OUTPUT();
 }
 
 TEST(libmachore, parse_macho_flags) {
-  struct machore_output_t analysis;
-  create_analysis(&analysis);
-
-  const char *filename = "/bin/ls";
-  uint8_t *buffer = nullptr;
-  size_t buffer_size = 0;
-  read_file_to_buffer(filename, &buffer, &buffer_size);
-
+  INIT_OUTPUT("/bin/ls");
   parse_macho(&analysis, buffer, buffer_size);
 
   struct arch_analysis *arch_analysis = &analysis.arch_analyses[0];
@@ -231,19 +201,11 @@ TEST(libmachore, parse_macho_flags) {
   EXPECT_FALSE(arch_analysis->allows_stack_execution);
   EXPECT_FALSE(arch_analysis->enforce_no_heap_exec);
 
-  free(buffer);
-  clean_analysis(&analysis);
+  CLEAN_OUTPUT();
 }
 
 TEST(libmachore, parse_macho_entitelements) {
-  struct machore_output_t analysis;
-  create_analysis(&analysis);
-
-  const char *filename = "/bin/ls";
-  uint8_t *buffer = nullptr;
-  size_t buffer_size = 0;
-  read_file_to_buffer(filename, &buffer, &buffer_size);
-
+  INIT_OUTPUT("/bin/ls");
   parse_macho(&analysis, buffer, buffer_size);
 
   struct arch_analysis *arch_analysis = &analysis.arch_analyses[0];
@@ -252,19 +214,11 @@ TEST(libmachore, parse_macho_entitelements) {
   EXPECT_FALSE(arch_analysis->security_flags->is_dylib_env_var_allowed);
   EXPECT_TRUE(arch_analysis->security_flags->is_signed);
 
-  free(buffer);
-  clean_analysis(&analysis);
+  CLEAN_OUTPUT();
 }
 
 TEST(libmachore, parse_macho_symbols) {
-  struct machore_output_t analysis;
-  create_analysis(&analysis);
-
-  const char *filename = "/bin/ls";
-  uint8_t *buffer = nullptr;
-  size_t buffer_size = 0;
-  read_file_to_buffer(filename, &buffer, &buffer_size);
-
+  INIT_OUTPUT("/bin/ls");
   parse_macho(&analysis, buffer, buffer_size);
 
   struct arch_analysis *arch_analysis = &analysis.arch_analyses[0];
@@ -279,6 +233,5 @@ TEST(libmachore, parse_macho_symbols) {
   EXPECT_STREQ(symbols[2].type, "EXTERNAL");
   EXPECT_TRUE(symbols[2].has_no_section);
 
-  free(buffer);
-  clean_analysis(&analysis);
+  CLEAN_OUTPUT();
 }

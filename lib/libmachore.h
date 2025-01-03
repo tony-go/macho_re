@@ -88,9 +88,9 @@ struct machore_output_t {
   bool is_fat;
 };
 
-void create_analysis(struct machore_output_t *output);
+void init_output(struct machore_output_t *output);
 
-void clean_analysis(struct machore_output_t *output);
+void clean_output(struct machore_output_t *output);
 
 void parse_macho(struct machore_output_t *output, uint8_t *buffer, size_t size);
 

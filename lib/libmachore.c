@@ -481,13 +481,13 @@ void parse_macho_arch(struct machore_output_t *output, int arch_index,
  *
  */
 
-void create_analysis(struct machore_output_t *analysis) {
+void init_output(struct machore_output_t *analysis) {
   analysis->arch_analyses = NULL;
   analysis->num_arch_analyses = 0;
   analysis->is_fat = false;
 }
 
-void clean_analysis(struct machore_output_t *output) {
+void clean_output(struct machore_output_t *output) {
   for (size_t i = 0; i < output->num_arch_analyses; i++) {
     clean_arch_analysis(&output->arch_analyses[i]);
   }

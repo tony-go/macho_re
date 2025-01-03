@@ -195,12 +195,12 @@ int main(int argc, char *argv[]) {
   fclose(file);
 
   struct machore_output_t output;
-  create_analysis(&output);
+  init_output(&output);
 
   parse_macho(&output, buffer, size);
   pretty_print_macho(&output, filename, is_first_only);
 
   free(buffer);
-  clean_analysis(&output);
+  clean_output(&output);
   return 0;
 }
