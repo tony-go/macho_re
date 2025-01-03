@@ -82,16 +82,16 @@ struct arch_analysis {
   struct security_flags *security_flags;
 };
 
-struct analysis {
+struct machore_output_t {
   struct arch_analysis *arch_analyses;
   size_t num_arch_analyses;
   bool is_fat;
 };
 
-void create_analysis(struct analysis *analysis);
+void create_analysis(struct machore_output_t *output);
 
-void clean_analysis(struct analysis *analysis);
+void clean_analysis(struct machore_output_t *output);
 
-void parse_macho(struct analysis *analysis, uint8_t *buffer, size_t size);
+void parse_macho(struct machore_output_t *output, uint8_t *buffer, size_t size);
 
 #endif

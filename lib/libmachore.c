@@ -439,19 +439,19 @@ void parse_flags(uint32_t flags, struct arch_analysis *arch_analysis) {
   arch_analysis->enforce_no_heap_exec = flags & MH_NO_HEAP_EXECUTION;
 }
 
-void parse_macho_arch(struct analysis *analysis, int arch_index,
+void parse_macho_arch(struct machore_output_t *output, int arch_index,
                       uint8_t *buffer) {
   // 1. Allocate memory for the new arch_analysis struct
   // TODO(tonygo):
   // - Check if the realloc failed
   // - Offload this allocation to a function
-  analysis->num_arch_analyses++;
-  analysis->arch_analyses =
-      realloc(analysis->arch_analyses,
-              analysis->num_arch_analyses * sizeof(struct arch_analysis));
+  output->num_arch_analyses++;
+  output->arch_analyses =
+      realloc(output->arch_analyses,
+              output->num_arch_analyses * sizeof(struct arch_analysis));
 
   // 2. Pick the the arch_analysis struct that we just allocated
-  struct arch_analysis *arch_analysis = &analysis->arch_analyses[arch_index];
+  struct arch_analysis *arch_analysis = &output->arch_analyses[arch_index];
 
   // 3. Pick the macho header of this architecture
   struct mach_header *header = (struct mach_header *)buffer;
@@ -481,26 +481,27 @@ void parse_macho_arch(struct analysis *analysis, int arch_index,
  *
  */
 
-void create_analysis(struct analysis *analysis) {
+void create_analysis(struct machore_output_t *analysis) {
   analysis->arch_analyses = NULL;
   analysis->num_arch_analyses = 0;
   analysis->is_fat = false;
 }
 
-void clean_analysis(struct analysis *analysis) {
-  for (size_t i = 0; i < analysis->num_arch_analyses; i++) {
-    clean_arch_analysis(&analysis->arch_analyses[i]);
+void clean_analysis(struct machore_output_t *output) {
+  for (size_t i = 0; i < output->num_arch_analyses; i++) {
+    clean_arch_analysis(&output->arch_analyses[i]);
   }
-  free(analysis->arch_analyses);
-  analysis->arch_analyses = NULL;
-  analysis->num_arch_analyses = 0;
-  analysis->is_fat = false;
+  free(output->arch_analyses);
+  output->arch_analyses = NULL;
+  output->num_arch_analyses = 0;
+  output->is_fat = false;
 }
 
-void parse_macho(struct analysis *analysis, uint8_t *buffer, size_t size) {
+void parse_macho(struct machore_output_t *output, uint8_t *buffer,
+                 size_t size) {
   bool is_fat = is_fat_header(buffer);
   if (is_fat) {
-    analysis->is_fat = true;
+    output->is_fat = true;
     struct fat_header *header = (struct fat_header *)buffer;
     uint32_t nfat_arch = ntohl(header->nfat_arch);
 
@@ -509,9 +510,9 @@ void parse_macho(struct analysis *analysis, uint8_t *buffer, size_t size) {
           (struct fat_arch *)(buffer + sizeof(struct fat_header) +
                               arch_index * sizeof(struct fat_arch));
       uint32_t offset = ntohl(arch->offset);
-      parse_macho_arch(analysis, arch_index, buffer + offset);
+      parse_macho_arch(output, arch_index, buffer + offset);
     }
   } else {
-    parse_macho_arch(analysis, 0, buffer);
+    parse_macho_arch(output, 0, buffer);
   }
 }

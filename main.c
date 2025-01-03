@@ -130,23 +130,23 @@ void print_arch(const struct arch_analysis *arch_analysis) {
   printf("   └────────────────\n");
 }
 
-void pretty_print_macho(const struct analysis *analysis, const char *path,
+void pretty_print_macho(const struct machore_output_t *output, const char *path,
                         bool is_first_only) {
-  if (analysis->is_fat && !is_first_only) {
+  if (output->is_fat && !is_first_only) {
     printf("📦 Fat Binary\n");
     printf("📂 Path: %s\n", path);
     printf("═══════════════════════\n\n");
 
-    for (size_t arch_index = 0; arch_index < analysis->num_arch_analyses;
+    for (size_t arch_index = 0; arch_index < output->num_arch_analyses;
          arch_index++) {
-      print_arch(&analysis->arch_analyses[arch_index]);
+      print_arch(&output->arch_analyses[arch_index]);
       printf("\n");
     }
   } else {
     printf("📦 Mach-O Binary\n");
     printf("📂 Path: %s\n", path);
     printf("══════════════\n");
-    print_arch(&analysis->arch_analyses[0]);
+    print_arch(&output->arch_analyses[0]);
   }
 }
 
@@ -194,13 +194,13 @@ int main(int argc, char *argv[]) {
   }
   fclose(file);
 
-  struct analysis analysis;
-  create_analysis(&analysis);
+  struct machore_output_t output;
+  create_analysis(&output);
 
-  parse_macho(&analysis, buffer, size);
-  pretty_print_macho(&analysis, filename, is_first_only);
+  parse_macho(&output, buffer, size);
+  pretty_print_macho(&output, filename, is_first_only);
 
   free(buffer);
-  clean_analysis(&analysis);
+  clean_analysis(&output);
   return 0;
 }

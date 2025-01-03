@@ -37,7 +37,7 @@ static void read_file_to_buffer(const char *filename, uint8_t **buffer,
 }
 
 TEST(libmachore, create_analysis) {
-  struct analysis analysis;
+  struct machore_output_t analysis;
   create_analysis(&analysis);
 
   EXPECT_EQ(analysis.arch_analyses, nullptr);
@@ -48,7 +48,7 @@ TEST(libmachore, create_analysis) {
 }
 
 TEST(libmachore, clean_analysis) {
-  struct analysis analysis;
+  struct machore_output_t analysis;
   create_analysis(&analysis);
   analysis.arch_analyses =
       (struct arch_analysis *)malloc(sizeof(struct arch_analysis));
@@ -62,7 +62,7 @@ TEST(libmachore, clean_analysis) {
 }
 
 TEST(libmachore, parse_macho_fat) {
-  struct analysis analysis;
+  struct machore_output_t analysis;
   create_analysis(&analysis);
 
   const char *filename = "/bin/ls";
@@ -80,7 +80,7 @@ TEST(libmachore, parse_macho_fat) {
 }
 
 TEST(libmachore, parse_macho_arch) {
-  struct analysis analysis;
+  struct machore_output_t analysis;
   create_analysis(&analysis);
 
   const char *filename = "/bin/ls";
@@ -101,7 +101,7 @@ TEST(libmachore, parse_macho_arch) {
 }
 
 TEST(libmachore, parse_macho_filetypes) {
-  struct analysis analysis;
+  struct machore_output_t analysis;
   uint8_t *buffer = nullptr;
   size_t buffer_size = 0;
 
@@ -162,7 +162,7 @@ TEST(libmachore, parse_macho_filetypes) {
 }
 
 TEST(libmachore, parse_macho_dylib) {
-  struct analysis analysis;
+  struct machore_output_t analysis;
   create_analysis(&analysis);
 
   const char *filename = "/bin/ls";
@@ -190,7 +190,7 @@ TEST(libmachore, parse_macho_dylib) {
 }
 
 TEST(libmachore, parse_macho_strings) {
-  struct analysis analysis;
+  struct machore_output_t analysis;
   create_analysis(&analysis);
 
   const char *filename = "/bin/ls";
@@ -213,7 +213,7 @@ TEST(libmachore, parse_macho_strings) {
 }
 
 TEST(libmachore, parse_macho_flags) {
-  struct analysis analysis;
+  struct machore_output_t analysis;
   create_analysis(&analysis);
 
   const char *filename = "/bin/ls";
@@ -236,7 +236,7 @@ TEST(libmachore, parse_macho_flags) {
 }
 
 TEST(libmachore, parse_macho_entitelements) {
-  struct analysis analysis;
+  struct machore_output_t analysis;
   create_analysis(&analysis);
 
   const char *filename = "/bin/ls";
@@ -257,7 +257,7 @@ TEST(libmachore, parse_macho_entitelements) {
 }
 
 TEST(libmachore, parse_macho_symbols) {
-  struct analysis analysis;
+  struct machore_output_t analysis;
   create_analysis(&analysis);
 
   const char *filename = "/bin/ls";
