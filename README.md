@@ -7,10 +7,11 @@
 ## Features
 
 - Parse both single-architecture and fat (universal) Mach-O binaries
-- Display CPU architecture information (x86, x86_64, ARM, ARM64)
-- List all linked dynamic libraries
-- Show version information for each dynamic library
-- Support for various load commands (LC_LOAD_DYLIB, LC_LOAD_WEAK_DYLIB, LC_ID_DYLIB)
+- Handle different binary types (executable, dylib, object file, etc.)
+- List all linked **dynamic libraries** with versions
+- Extract all **strings** with their locations
+- Extract **symbols** and their types
+- Show binary flags and security info (Code signing, entitlements)
 
 ## Building
 
@@ -77,6 +78,30 @@ make
    │  • firefox (__TEXT,__cstring)
    │  • 133.0.3 (__TEXT,__cstring)
    │  • 20241209150345 (__TEXT,__cstring)
+   │  ... (truncated)
+   └────────────────
+   ├─ Symbols:
+   │  • __mh_execute_header (EXTERNAL)
+   │  • _CFBundleCopyExecutableURL (EXTERNAL)
+   │  • _CFBundleGetMainBundle (EXTERNAL)
+   │  • _CFRelease (EXTERNAL)
+   │  • _CFURLGetFileSystemRepresentation (EXTERNAL)
+   │  • __ZN13CrashReporter30RegisterRuntimeExceptionModuleEv (EXTERNAL)
+   │  • __ZN13CrashReporter32UnregisterRuntimeExceptionModuleEv (EXTERNAL)
+   │  • __ZN7mozilla12PrintfTarget6vprintEPKcP13__va_list_tag (EXTERNAL)
+   │  • __ZN7mozilla12PrintfTargetC2Ev (EXTERNAL)
+   │  • __ZN7mozilla12baseprofiler13profiler_initEPv (EXTERNAL)
+   │  • __ZN7mozilla12baseprofiler14ProfilingStack18ensureCapacitySlowEv (EXTERNAL)
+   │  • __ZN7mozilla12baseprofiler17AutoProfilerLabel17GetProfilingStackEv (EXTERNAL)
+   │  • __ZN7mozilla12baseprofiler17profiler_shutdownEv (EXTERNAL)
+   │  • __ZN7mozilla12baseprofiler26profiler_current_thread_idEv (EXTERNAL)
+   │  • __ZN7mozilla12baseprofiler6detail12RacyFeatures19IsActiveAndUnpausedEv (EXTERNAL)
+   │  • __ZN7mozilla12baseprofiler9AddMarkerINS0_7markers10TextMarkerEJNSt3__112basic_stringIcNS4_11char_traitsIcEENS4_9allocatorIcEEEEEEENS_23ProfileBufferBlockIndexERKNS_18ProfilerStringViewIcEERKNS_14MarkerCategoryEONS_13MarkerOptionsET_DpRKT0_ (EXTERNAL)
+   │  • __ZN7mozilla6detail9MutexImpl4lockEv (EXTERNAL)
+   │  • __ZN7mozilla6detail9MutexImpl6unlockEv (EXTERNAL)
+   │  • __ZN7mozilla6detail9MutexImplD2Ev (EXTERNAL)
+   │  • __ZN7mozilla9TimeStamp3NowEb (EXTERNAL)
+   │  ... (truncated)
    └────────────────
 ```
 
