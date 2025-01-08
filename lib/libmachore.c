@@ -187,15 +187,6 @@ void parse_data_const_segment64(struct machore_arch_output_t *arch_output,
   }
 }
 
-void parse_linkedit_segment64(struct machore_arch_output_t *arch_output,
-                              uint8_t *buffer, struct segment_command_64 *seg) {
-  struct section_64 *sect = (void *)seg + sizeof(struct segment_command_64);
-  for (uint32_t index = 0; index < seg->nsects; index++) {
-    printf("Linkedit section: %s\n", sect->sectname);
-    sect++;
-  }
-}
-
 void parse_data_const_segment(struct machore_arch_output_t *arch_output,
                               uint8_t *buffer, struct segment_command *seg) {
   struct section *sect = (void *)seg + sizeof(struct segment_command);
@@ -358,6 +349,7 @@ void parse_load_commands(struct machore_arch_output_t *arch_output,
       parse_dylib_command((struct dylib_command *)lc, arch_output);
       break;
     }
+    // TODO: handle other __LINKEDIT segments
     case LC_SEGMENT_64: {
       struct segment_command_64 *seg = (struct segment_command_64 *)lc;
       if (strcmp(seg->segname, "__TEXT") == 0) {
@@ -366,8 +358,6 @@ void parse_load_commands(struct machore_arch_output_t *arch_output,
         parse_data_segment64(arch_output, buffer, seg);
       } else if (strcmp(seg->segname, "__DATA_CONST") == 0) {
         parse_data_const_segment64(arch_output, buffer, seg);
-      } else if (strcmp(seg->segname, "__LINKEDIT") == 0) {
-        parse_linkedit_segment64(arch_output, buffer, seg);
       }
       break;
     }
