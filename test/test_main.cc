@@ -213,6 +213,7 @@ TEST(libmachore, parse_macho_entitelements) {
   EXPECT_FALSE(arch_output->security_flags->is_library_validation_disabled);
   EXPECT_FALSE(arch_output->security_flags->is_dylib_env_var_allowed);
   EXPECT_TRUE(arch_output->security_flags->is_signed);
+  EXPECT_TRUE(arch_output->entitlements == NULL);
 
   CLEAN_OUTPUT();
 }

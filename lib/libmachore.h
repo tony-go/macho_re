@@ -80,6 +80,7 @@ struct machore_arch_output_t {
 
   // Codesign info
   struct security_flags *security_flags;
+  char *entitlements;
 };
 
 struct machore_output_t {
