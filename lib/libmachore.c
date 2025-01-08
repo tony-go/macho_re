@@ -51,6 +51,10 @@ void clean_arch_output(struct machore_arch_output_t *arch_output) {
 
   free(arch_output->symbols);
   arch_output->num_symbols = 0;
+
+  if (arch_output->entitlements != NULL) {
+    free(arch_output->entitlements);
+  }
 }
 
 // The version is a 32-bit integer in the format 0xMMmmPPPP, where MM is the
@@ -203,6 +207,9 @@ void parse_entitlements(CS_GenericBlob_shim *entitlements_blob,
   uint32_t xml_length = length - sizeof(CS_GenericBlob_shim);
   char *entitlements = strndup((char *)entitlements_blob->data, xml_length);
 
+  arch_output->entitlements = malloc(xml_length + 1);
+  strcpy(arch_output->entitlements, entitlements);
+
   // Detect sensitive entitlements
   if (strstr(entitlements,
              "<key>com.apple.security.cs.disable-library-validation</key>") !=
@@ -342,6 +349,7 @@ void parse_load_commands(struct machore_arch_output_t *arch_output,
       parse_dylib_command((struct dylib_command *)lc, arch_output);
       break;
     }
+    // TODO: handle other __LINKEDIT segments
     case LC_SEGMENT_64: {
       struct segment_command_64 *seg = (struct segment_command_64 *)lc;
       if (strcmp(seg->segname, "__TEXT") == 0) {
